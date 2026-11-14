@@ -22,15 +22,19 @@ fs.writeFileSync(archive, Buffer.from(encoded, "base64"));
 execFileSync("tar", ["-xJf", archive, "-C", root], { stdio: "inherit" });
 fs.unlinkSync(archive);
 for (const relative of [
-  "src/app/admin/staff/page.tsx",
   "src/app/admin/staff/StaffManager.tsx",
   "src/app/api/admin/staff/route.ts",
   "src/lib/auth.ts",
-  "src/lib/service.ts"
+  "src/lib/types.ts",
+  "src/lib/data/index.ts",
+  "src/lib/data/supabase.ts",
+  "src/lib/supabase/rest.ts"
 ]) {
-  console.log("SDMA_SOURCE_BEGIN:" + relative);
-  console.log(fs.readFileSync(path.join(root, relative), "utf8"));
-  console.log("SDMA_SOURCE_END:" + relative);
+  const source = fs.readFileSync(path.join(root, relative), "utf8");
+  for (let offset = 0; offset < source.length; offset += 1200) {
+    const part = source.slice(offset, offset + 1200);
+    console.log("SDMA_B64:" + relative + ":" + Math.floor(offset / 1200) + ":" + Buffer.from(part, "utf8").toString("base64"));
+  }
 }
 for (const name of parts) fs.unlinkSync(path.join(root, name));
 
