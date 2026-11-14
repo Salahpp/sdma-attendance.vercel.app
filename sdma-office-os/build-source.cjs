@@ -23,5 +23,11 @@ execFileSync("tar", ["-xJf", archive, "-C", root], { stdio: "inherit" });
 fs.unlinkSync(archive);
 for (const name of parts) fs.unlinkSync(path.join(root, name));
 
-execFileSync("npm", ["install", "--no-audit", "--no-fund"], { cwd: root, stdio: "inherit" });
+const presetB64 = fs.readFileSync(path.join(root, "tailwind-preset.b64"), "utf8").trim();
+const presetPath = path.join(root, "replica", "design", "tailwind.preset.js");
+fs.mkdirSync(path.dirname(presetPath), { recursive: true });
+fs.writeFileSync(presetPath, Buffer.from(presetB64, "base64"));
+fs.unlinkSync(path.join(root, "tailwind-preset.b64"));
+
+execFileSync("npm", ["install", "--include=dev", "--no-audit", "--no-fund"], { cwd: root, stdio: "inherit" });
 execFileSync("npm", ["run", "build"], { cwd: root, stdio: "inherit" });
