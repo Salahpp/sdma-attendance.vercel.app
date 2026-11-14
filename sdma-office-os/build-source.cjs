@@ -28,6 +28,9 @@ for (const relative of [
   "src/lib/types.ts",
   "src/lib/data/index.ts",
   "src/lib/data/supabase.ts",
+  "src/lib/data/contract.ts",
+  "src/lib/data/fake.ts",
+  "src/lib/data/index.ts",
   "src/lib/supabase/rest.ts"
 ]) {
   const source = fs.readFileSync(path.join(root, relative), "utf8");
