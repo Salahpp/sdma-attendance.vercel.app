@@ -21,9 +21,17 @@ const archive = path.join(root, ".sdma-office-os-source.tar.xz");
 fs.writeFileSync(archive, Buffer.from(encoded, "base64"));
 execFileSync("tar", ["-xJf", archive, "-C", root], { stdio: "inherit" });
 fs.unlinkSync(archive);
-console.log("SDMA_SOURCE_FILE_LIST_BEGIN");
-console.log(execFileSync("find", [root, "-path", path.join(root, "node_modules"), "-prune", "-o", "-path", path.join(root, ".next"), "-prune", "-o", "-type", "f", "-print"], { encoding: "utf8" }));
-console.log("SDMA_SOURCE_FILE_LIST_END");
+for (const relative of [
+  "src/app/admin/staff/page.tsx",
+  "src/app/admin/staff/StaffManager.tsx",
+  "src/app/api/admin/staff/route.ts",
+  "src/lib/auth.ts",
+  "src/lib/service.ts"
+]) {
+  console.log("SDMA_SOURCE_BEGIN:" + relative);
+  console.log(fs.readFileSync(path.join(root, relative), "utf8"));
+  console.log("SDMA_SOURCE_END:" + relative);
+}
 for (const name of parts) fs.unlinkSync(path.join(root, name));
 
 const designDir = path.join(root, "replica", "design");
