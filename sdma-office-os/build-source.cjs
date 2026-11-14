@@ -20,6 +20,19 @@ const encoded = parts.map((name) => fs.readFileSync(path.join(root, name), "utf8
 const archive = path.join(root, ".sdma-office-os-source.tar.xz");
 fs.writeFileSync(archive, Buffer.from(encoded, "base64"));
 execFileSync("tar", ["-xJf", archive, "-C", root], { stdio: "inherit" });
+
+const debugFiles = [];
+function walkDebug(dir) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (["node_modules", ".next", ".git"].includes(entry.name)) continue;
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) walkDebug(full);
+    else if (full.includes(path.sep + "src" + path.sep)) debugFiles.push(path.relative(root, full));
+  }
+}
+walkDebug(root);
+console.log("SDMA_TREE:" + JSON.stringify(debugFiles));
+
 fs.unlinkSync(archive);
 
 function patchSource(relative, transform) {
