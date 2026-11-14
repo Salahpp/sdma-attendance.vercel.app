@@ -2,6 +2,7 @@
   "name": "sdma-office-os-bootstrap",
   "version": "1.0.0",
   "private": true,
+  "description": "Vercel bootstrap for Shah Digital Marketing Agency Office OS",
   "engines": {
     "node": "22.x"
   },
