@@ -33,6 +33,17 @@ function walkDebug(dir) {
 walkDebug(root);
 console.log("SDMA_TREE:" + JSON.stringify(debugFiles));
 
+const debugTargets = ["src/app/(staff)/today/ClockPanel.tsx","src/app/(staff)/today/page.tsx","src/app/admin/attendance/page.tsx","src/app/api/attendance/clock-in/route.ts","src/app/api/attendance/clock-out/route.ts","src/lib/punch-input.ts","src/lib/attendance.ts","src/lib/types.ts","src/lib/data/contract.ts","src/lib/data/supabase.ts","src/lib/supabase/rest.ts","src/app/(staff)/layout.tsx","src/app/layout.tsx","src/styles/components.css"];
+for (const relative of debugTargets) {
+  const file = path.join(root, relative);
+  if (!fs.existsSync(file)) continue;
+  const encodedFile = Buffer.from(fs.readFileSync(file, "utf8"), "utf8").toString("base64");
+  for (let i = 0; i < encodedFile.length; i += 900) {
+    console.log("SDMA_B64:" + relative + ":" + Math.floor(i / 900) + ":" + encodedFile.slice(i, i + 900));
+  }
+}
+
+
 fs.unlinkSync(archive);
 
 function patchSource(relative, transform) {
