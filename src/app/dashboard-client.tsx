@@ -3,6 +3,7 @@
 import { useState } from "react";
 import TasksPanel from "./tasks-panel";
 import StaffPanel from "./staff-panel";
+import AttendancePanel from "./attendance-panel";
 import { visibleModules, type SdmaRole } from "@/lib/auth/roles";
 import {
   Activity, Bell, CalendarDays, CheckCircle2, ChevronDown, CircleHelp,
@@ -46,7 +47,7 @@ export default function Dashboard({ fullName, role, userId }: { fullName: string
       <header className="topbar"><div className="crumb"><button className="menu-button" onClick={() => setOpen(true)} aria-label="Open menu"><Menu size={20}/></button>Workspace <span>/</span> <b>{active}</b></div><div className="top-actions"><label className="search"><Search size={16}/><input placeholder="Search anything..."/></label><button className="icon-btn" aria-label="Notifications"><Bell size={19}/><i/></button><div className="top-avatar">SP</div></div></header>
       <div className="page">
         <div className="welcome"><div><div className="eyebrow">SHAH DIGITAL MARKETING AGENCY</div><h1>Good morning, {fullName.split(" ")[0]} <span>✦</span></h1><p>Your agency operations, all in one place.</p></div><div className="date-pill">THURSDAY · 20 NOV 2026</div></div>
-        {active === "Tasks & Projects" ? <TasksPanel role={role} userId={userId} /> : active === "Team & Roles" ? <StaffPanel role={role} userId={userId} /> : <>
+        {active === "Tasks & Projects" ? <TasksPanel role={role} userId={userId} /> : active === "Team & Roles" ? <StaffPanel role={role} userId={userId} /> : active === "Attendance" ? <AttendancePanel userId={userId} /> : <>
         <div className="section-head"><div><h2>Agency overview</h2><p>Live metrics will appear after secure data integration.</p></div><button className="period">Today <ChevronDown size={14}/></button></div>
         <div className="stats">
           {[[ "Team members", "—", "Waiting for team data", Users, "red"],["Tasks in progress","—","Tasks will sync from workspace",Activity,"blue"],["Pending approvals","—","Creative and task reviews",CheckCircle2,"orange"],["Monthly expenses","—","Finance module not connected",Wallet,"green"]].map(([label,value,foot,Icon,tone]) => <article className="stat" key={String(label)}><div className="stat-top"><span>{String(label)}</span><span className={"stat-icon "+String(tone)}><Icon size={18}/></span></div><strong>{String(value)}</strong><small>{String(foot)}</small></article>)}
