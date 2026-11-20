@@ -46,7 +46,7 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
   useEffect(() => { void load(); }, [load]);
 
   async function createTask(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setSaving(true); setError(""); setSuccess("");
+    event.preventDefault(); const formElement = event.currentTarget; setSaving(true); setError(""); setSuccess("");
     const form = new FormData(event.currentTarget);
     const title = String(form.get("title") || "").trim();
     if (!title) { setError("Task title is required."); setSaving(false); return; }
@@ -64,7 +64,7 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
     if (insertError) setError(insertError.message);
     else {
       if (data?.id) await supabase.from("task_activity").insert({ task_id: data.id, actor_id: userId, action: "created", details: { title } });
-      setSuccess("Task created successfully."); event.currentTarget.reset(); setShowForm(false); await load();
+      setSuccess("Task created successfully."); formElement.reset(); setShowForm(false); await load();
     }
     setSaving(false);
   }
