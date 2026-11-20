@@ -54,7 +54,7 @@ export default function DailyReportsPanel({userId,role}:{userId:string;role:stri
   return <section className="reports-workspace">
     <div className="tasks-toolbar"><div><h2>Daily Reports</h2><p>Submit your morning plan and evening work summary.</p></div><button className="secondary-action" onClick={()=>void load()}><RefreshCw size={15}/> Refresh</button></div>
     <div className="report-tabs"><button className={type==="morning"?"active":""} onClick={()=>setType("morning")}>Morning report</button><button className={type==="evening"?"active":""} onClick={()=>setType("evening")}>Evening report</button></div>
-    <form className="task-form" onSubmit={submit}>
+    <form key={current?.id||type} className="task-form" onSubmit={submit}>
       <div className="task-form-heading"><b>{type==="morning"?"Today’s work plan":"Today’s work summary"}</b><span>{today()}</span></div>
       <label>{type==="morning"?"Planned tasks":"Tasks completed"}<textarea name={type==="morning"?"planned_tasks":"completed_tasks"} rows={4} defaultValue={type==="morning"?current?.planned_tasks||"":current?.completed_tasks||""} placeholder={type==="morning"?"List your key tasks for today…":"Summarise completed work and deliverables…"} /></label>
       <label>Blockers / Issues<textarea name="blockers" rows={2} defaultValue={current?.blockers||""} placeholder="Any delays, approvals or support needed?"/></label>
