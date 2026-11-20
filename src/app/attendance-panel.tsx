@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Camera, MapPin, Clock3, LogIn, LogOut, Loader2, RefreshCw, ShieldCheck } from "lucide-react";
 
+type TeamMember = {id:string;full_name:string;role:string;is_active:boolean};
 type AttendanceRow = {
   id:string; attendance_date:string; check_in:string|null; check_out:string|null;
   check_in_lat:number|null; check_in_lng:number|null; check_out_lat:number|null; check_out_lng:number|null;
@@ -18,11 +19,14 @@ function timeLabel(value:string|null) {
   return value ? new Date(value).toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Kolkata"}) : "—";
 }
 
-export default function AttendancePanel({userId}:{userId:string}) {
+export default function AttendancePanel({userId,role}:{userId:string;role:string}) {
   const supabase = useMemo(()=>createClient(),[]);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream|null>(null);
   const [record,setRecord] = useState<AttendanceRow|null>(null);
+  const [teamRows,setTeamRows] = useState<AttendanceRow[]>([]);
+  const [teamMembers,setTeamMembers] = useState<TeamMember[]>([]);
+  const canMonitorTeam=["ceo","operations_manager","team_lead","office_admin"].includes(role);
   const [loading,setLoading] = useState(true);
   const [cameraReady,setCameraReady] = useState(false);
   const [photo,setPhoto] = useState<Blob|null>(null);
@@ -36,8 +40,16 @@ export default function AttendancePanel({userId}:{userId:string}) {
     setLoading(true); setError("");
     const {data,error}=await supabase.from("attendance").select("*").eq("user_id",userId).eq("attendance_date",officeDate()).maybeSingle();
     if(error) setError(error.message); else setRecord(data as AttendanceRow|null);
+    if(canMonitorTeam){
+      const [attendanceResult,peopleResult]=await Promise.all([
+        supabase.from("attendance").select("*").eq("attendance_date",officeDate()).order("check_in",{ascending:true}),
+        supabase.from("profiles").select("id,full_name,role,is_active").eq("is_active",true).order("full_name")
+      ]);
+      if(attendanceResult.error)setError(attendanceResult.error.message);else setTeamRows((attendanceResult.data??[]) as AttendanceRow[]);
+      if(peopleResult.error)setError(peopleResult.error.message);else setTeamMembers((peopleResult.data??[]) as TeamMember[]);
+    }
     setLoading(false);
-  },[supabase,userId]);
+  },[supabase,userId,canMonitorTeam]);
   useEffect(()=>{void load();},[load]);
   useEffect(()=>()=>{if(streamRef.current) streamRef.current.getTracks().forEach(t=>t.stop());},[]);
   useEffect(()=>{return ()=>{if(photoUrl) URL.revokeObjectURL(photoUrl);};},[photoUrl]);
@@ -127,6 +139,7 @@ export default function AttendancePanel({userId}:{userId:string}) {
     </div>}
     {loading&&<div className="task-empty"><Loader2 className="spin" size={20}/> Loading attendance…</div>}
     {error&&<p className="task-alert error">{error}</p>}{message&&<p className="task-alert success">{message}</p>}
+    {canMonitorTeam&&<section className="team-attendance"><div className="panel-head"><div><h3>Team attendance</h3><p>Today’s check-in status across active staff</p></div><Users size={18}/></div><div className="team-attendance-list">{teamMembers.map(person=>{const row=teamRows.find(r=>r.user_id===person.id);return <article key={person.id}><div className="team-person"><b>{person.full_name||"Staff member"}</b><small>{person.role.replaceAll("_"," ")}</small></div><span className={row?.check_in?(row.check_out?"staff-status active":"attendance-live"):"attendance-pending"}>{row?.check_out?"Completed":row?.check_in?"Working":"Not checked in"}</span><time>{timeLabel(row?.check_in||null)}</time><time>{timeLabel(row?.check_out||null)}</time></article>;})}</div></section>}
     <p className="staff-footnote"><MapPin size={13}/> GPS access is requested only when you submit a punch. Attendance is not queued offline; a successful server response is required to confirm the punch.</p>
   </section>;
 }
