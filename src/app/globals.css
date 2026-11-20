@@ -126,3 +126,19 @@
 .team-person{display:grid;gap:4px}.team-person b{font-size:12px;color:#333}.team-person small{font-size:10px;color:#999;text-transform:capitalize}
 .team-attendance-list time{font-size:11px;color:#666}
 @media(max-width:560px){.team-attendance-list article{grid-template-columns:1fr 1fr;gap:8px}.team-person{grid-column:1/-1}}
+
+
+/* Daily reporting */
+.reports-workspace{display:grid;gap:16px}
+.report-tabs{display:flex;gap:7px;background:#f0f0f0;padding:5px;border-radius:11px;width:max-content;max-width:100%}
+.report-tabs button{border:0;background:transparent;padding:9px 14px;border-radius:8px;color:#666;font-size:12px;font-weight:700;cursor:pointer}
+.report-tabs button.active{background:#fff;color:#c51d24;box-shadow:0 1px 4px #00000010}
+.reports-workspace .task-form-heading span{font-size:11px;color:#999}
+.team-reports{display:grid;gap:12px;background:#fff;border:1px solid #ececec;border-radius:14px;padding:17px}
+.team-reports .panel-head{display:flex;align-items:center;justify-content:space-between}.team-reports .panel-head h3{font-size:15px;margin:0 0 4px}.team-reports .panel-head p{font-size:11px;color:#888;margin:0}
+.team-report-list{display:grid}.team-report-list article{display:grid;grid-template-columns:160px minmax(0,1fr) auto;gap:10px;padding:12px 0;border-top:1px solid #f0f0f0;align-items:start}
+.team-report-list article>div{display:grid;gap:4px}.team-report-list b{font-size:12px;color:#333}.team-report-list small{font-size:10px;color:#999}
+.team-report-list p{font-size:11px;color:#666;white-space:pre-wrap;line-height:1.5;margin:0}
+.team-report-list article>span{font-size:10px;color:#777;background:#f5f5f5;border-radius:20px;padding:5px 8px;white-space:nowrap}
+.team-report-list .report-blocker{grid-column:2/-1;color:#bb3d31!important}
+@media(max-width:650px){.team-report-list article{grid-template-columns:1fr auto}.team-report-list p{grid-column:1/-1}.team-report-list .report-blocker{grid-column:1/-1}}
