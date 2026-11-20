@@ -30,13 +30,13 @@ export default function LeavePanel({userId,role}:{userId:string;role:string}) {
   },[supabase,userId,manager]);
   useEffect(()=>{void load();},[load]);
   async function submit(event:FormEvent<HTMLFormElement>){
-    event.preventDefault();setSaving(true);setError("");setNotice("");
-    const form=new FormData(event.currentTarget);
+    event.preventDefault();const formElement=event.currentTarget;setSaving(true);setError("");setNotice("");
+    const form=new FormData(formElement);
     const start=String(form.get("start_date")||"");const end=String(form.get("end_date")||"");
     if(!start||!end||end<start){setError("Please select a valid leave date range.");setSaving(false);return;}
     const payload={user_id:userId,leave_type:String(form.get("leave_type")||"casual"),start_date:start,end_date:end,reason:String(form.get("reason")||"").trim()||null};
     const {error}=await supabase.from("leave_requests").insert(payload);
-    if(error)setError(error.message);else{setNotice("Leave request submitted.");event.currentTarget.reset();await load();}
+    if(error)setError(error.message);else{setNotice("Leave request submitted.");formElement.reset();await load();}
     setSaving(false);
   }
   async function review(row:Leave,status:"approved"|"rejected"){
