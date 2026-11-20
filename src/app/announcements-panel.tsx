@@ -2,7 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Bell, CheckCheck, Loader2, Megaphone, Plus, RefreshCw, Send, Trash2 } from "lucide-react";
+import { Bell, CheckCheck, Loader2, Megaphone, Plus, RefreshCw, Send } from "lucide-react";
 
 type Announcement={id:string;title:string;body:string;priority:string;is_active:boolean;expires_at:string|null;created_by:string;created_at:string;target_roles:string[]|null};
 type Notification={id:string;user_id:string;title:string;body:string|null;notification_type:string;action_url:string|null;read_at:string|null;created_at:string;reminder_id:string|null;reminder_date:string|null};
