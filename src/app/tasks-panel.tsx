@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Plus, RefreshCw, CalendarClock, UserRound, CircleCheck, Loader2 } from "lucide-react";
 
@@ -19,7 +19,7 @@ const statusLabels: Record<Task["status"], string> = {
 const priorityLabels: Record<Task["priority"], string> = { low: "Low", medium: "Medium", high: "High", urgent: "Urgent" };
 
 export default function TasksPanel({ role, userId }: { role: string; userId: string }) {
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [people, setPeople] = useState<Person[]>([]);
   const [loading, setLoading] = useState(true);
