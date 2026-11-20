@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import type { Database } from "@/types/database.types";
 import { createClient } from "@/lib/supabase/client";
 import { RefreshCw, ShieldCheck, UserRound, Loader2, Save, Users } from "lucide-react";
 
@@ -38,7 +39,7 @@ export default function StaffPanel({ role, userId }: { role: string; userId: str
       phone: String(form.get("phone") || "").trim() || null,
       job_title: String(form.get("job_title") || "").trim() || null,
       department: String(form.get("department") || "").trim() || null,
-      role: String(form.get("role") || member.role),
+      role: String(form.get("role") || member.role) as Database["public"]["Enums"]["sdma_role"],
       is_active: form.get("is_active") === "on"
     };
     const {error} = await supabase.from("profiles").update(payload).eq("id",member.id);
