@@ -25,7 +25,7 @@ export function canManageAds(role: SdmaRole) {
 
 export function visibleModules(role: SdmaRole) {
   const common = ["Overview", "Tasks & Projects", "Attendance", "Daily Reports", "Announcements"];
-  if (role === "staff" || role === "marketer" || role === "designer") return common;
+  if (role === "staff" || role === "marketer" || role === "designer") return [...common, "Content Calendar"];
   if (role === "team_lead" || role === "office_admin") return [...common, "Clients & CRM", "Content Calendar", "Ads & Leads", "Team & Roles"];
   if (role === "accounts") return [...common, "Clients & CRM", "Finance & Payroll"];
   return [...common, "Clients & CRM", "Content Calendar", "Ads & Leads", "Team & Roles", "Finance & Payroll"];
