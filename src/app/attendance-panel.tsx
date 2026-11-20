@@ -2,11 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Camera, MapPin, Clock3, LogIn, LogOut, Loader2, RefreshCw, ShieldCheck } from "lucide-react";
+import { Camera, MapPin, Clock3, LogIn, LogOut, Loader2, RefreshCw, ShieldCheck, Users } from "lucide-react";
 
 type TeamMember = {id:string;full_name:string;role:string;is_active:boolean};
 type AttendanceRow = {
-  id:string; attendance_date:string; check_in:string|null; check_out:string|null;
+  id:string; user_id:string; attendance_date:string; check_in:string|null; check_out:string|null;
   check_in_lat:number|null; check_in_lng:number|null; check_out_lat:number|null; check_out_lng:number|null;
   check_in_selfie_path:string|null; check_out_selfie_path:string|null; status:string;
 };
