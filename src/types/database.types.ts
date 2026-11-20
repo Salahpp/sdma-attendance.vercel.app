@@ -492,6 +492,9 @@ export type Database = {
           estimated_value: number
           full_name: string
           id: string
+          campaign_name: string | null
+          next_follow_up_at: string | null
+          last_contacted_at: string | null
           notes: string | null
           phone: string | null
           source: string | null
@@ -501,6 +504,9 @@ export type Database = {
         Insert: {
           assigned_to?: string | null
           client_id?: string | null
+          campaign_name?: string | null
+          next_follow_up_at?: string | null
+          last_contacted_at?: string | null
           created_at?: string
           created_by?: string
           email?: string | null
@@ -516,6 +522,9 @@ export type Database = {
         Update: {
           assigned_to?: string | null
           client_id?: string | null
+          campaign_name?: string | null
+          next_follow_up_at?: string | null
+          last_contacted_at?: string | null
           created_at?: string
           created_by?: string
           email?: string | null
@@ -550,6 +559,15 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+        ]
+      }
+      lead_activities: {
+        Row: { id: string; lead_id: string; user_id: string; activity_type: string; details: string; created_at: string }
+        Insert: { id?: string; lead_id: string; user_id?: string; activity_type?: string; details: string; created_at?: string }
+        Update: { id?: string; lead_id?: string; user_id?: string; activity_type?: string; details?: string; created_at?: string }
+        Relationships: [
+          { foreignKeyName: "lead_activities_lead_id_fkey"; columns: ["lead_id"]; isOneToOne: false; referencedRelation: "leads"; referencedColumns: ["id"] },
+          { foreignKeyName: "lead_activities_user_id_fkey"; columns: ["user_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] }
         ]
       }
       leave_requests: {
