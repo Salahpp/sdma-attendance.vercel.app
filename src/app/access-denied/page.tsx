@@ -1,0 +1,3 @@
+export default function AccessDeniedPage() {
+  return <main className="login-shell"><section className="login-card"><div className="login-brand"><div className="brand-mark">S</div><div><b>SHAH<span>.</span></b><small>OFFICE OS</small></div></div><div className="login-intro"><div className="eyebrow">WORKSPACE ACCESS</div><h1>Profile not active.</h1><p>Your account is authenticated, but no active SDMA staff profile is linked to it. Please contact the CEO or Operations Manager to activate your access.</p></div><form action="/logout" method="post"><button type="submit">Sign out</button></form></section></main>;
+}
