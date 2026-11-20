@@ -178,3 +178,30 @@
 .content-footnote{margin:0;color:#8b8b8b;font-size:10px;line-height:1.5}
 @media(max-width:900px){.content-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:560px){.content-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.content-card-top{flex-direction:column}.content-client{white-space:normal}.content-actions{align-items:flex-start;flex-direction:column}.content-actions label{width:100%;justify-content:space-between}.content-actions select{flex:1}}
+
+/* Ads performance and lead CRM */
+.ads-workspace{display:grid;gap:16px}
+.ads-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}
+.ads-kpis article{display:grid;gap:8px;background:#fff;border:1px solid #ededed;border-radius:13px;padding:15px;min-width:0}
+.ads-kpis article>span{display:flex;align-items:center;gap:7px;color:#777;font-size:11px}
+.ads-kpis article>b{font-size:22px;letter-spacing:-.5px;color:#222}
+.ads-kpis article>small{font-size:10px;color:#999}
+.ads-tabs{display:flex;gap:7px;border-bottom:1px solid #eaeaea;padding-bottom:8px}
+.ads-tabs button{display:flex;align-items:center;gap:7px;border:0;background:transparent;color:#777;border-radius:8px;padding:9px 12px;font-size:12px;cursor:pointer}
+.ads-tabs button.active{background:#fff0f0;color:#bd2026;font-weight:700}
+.lead-list,.ad-report-list{display:grid;gap:11px}
+.lead-card,.ad-report-card{display:grid;gap:11px;background:#fff;border:1px solid #ececec;border-radius:13px;padding:15px;min-width:0}
+.lead-main{display:grid;gap:5px}.lead-main>div{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.lead-main>div>b{font-size:14px;color:#252525}.lead-main>small,.ad-report-heading small{font-size:10px;color:#888}
+.lead-contact{display:flex;gap:14px;flex-wrap:wrap}.lead-contact a{display:inline-flex;align-items:center;gap:5px;color:#666;text-decoration:none;font-size:11px}
+.lead-meta{display:flex;gap:14px;flex-wrap:wrap;color:#888;font-size:10px}.lead-meta span{display:inline-flex;align-items:center;gap:5px}
+.lead-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-top:1px solid #f0f0f0;padding-top:10px}
+.lead-controls label{display:flex;align-items:center;gap:6px;font-size:10px;color:#777}.lead-controls select,.lead-controls input,.lead-activity-compose select{border:1px solid #e5e5e5;border-radius:8px;background:#fff;padding:8px;color:#444;font-size:11px;max-width:190px}
+.lead-controls .secondary-action{padding:8px 10px;font-size:11px}
+.lead-activity{display:grid;gap:10px;background:#fafafa;border-radius:10px;padding:12px}
+.lead-activity-items{display:grid;gap:8px}.lead-activity-items p{display:grid;gap:4px;margin:0;font-size:11px;color:#555}.lead-activity-items b{color:#333}.lead-activity-items small{color:#999;font-size:9px}
+.lead-activity-compose{display:flex;gap:7px}.lead-activity-compose input{flex:1;min-width:0;border:1px solid #e4e4e4;border-radius:8px;padding:9px 10px;font-size:11px}
+.lead-activity-compose button{padding:8px 11px}
+.ad-report-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.ad-report-heading>div{display:grid;gap:5px}.ad-report-heading b{font-size:13px;color:#292929}.ad-report-heading>strong{font-size:15px;color:#222;white-space:nowrap}
+.ad-report-metrics{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}.ad-report-metrics span{display:grid;gap:4px;padding:9px;background:#fafafa;border-radius:8px;color:#888;font-size:9px}.ad-report-metrics b{font-size:12px;color:#333}.ad-report-card>p{margin:0;color:#777;font-size:11px}
+@media(max-width:900px){.ads-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.ad-report-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:560px){.ads-kpis article>b{font-size:19px}.lead-controls{align-items:stretch;flex-direction:column}.lead-controls label{justify-content:space-between}.lead-controls select,.lead-controls input{max-width:65%}.lead-activity-compose{flex-wrap:wrap}.lead-activity-compose input{flex-basis:100%}.ad-report-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.ad-report-heading{flex-direction:column}}
