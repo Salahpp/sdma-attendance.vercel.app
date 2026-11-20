@@ -142,3 +142,13 @@
 .team-report-list article>span{font-size:10px;color:#777;background:#f5f5f5;border-radius:20px;padding:5px 8px;white-space:nowrap}
 .team-report-list .report-blocker{grid-column:2/-1;color:#bb3d31!important}
 @media(max-width:650px){.team-report-list article{grid-template-columns:1fr auto}.team-report-list p{grid-column:1/-1}.team-report-list .report-blocker{grid-column:1/-1}}
+
+
+.leave-workspace{display:grid;gap:16px}
+.leave-list{display:grid}.leave-list article{display:flex;align-items:center;gap:12px;padding:13px 0;border-top:1px solid #f0f0f0}
+.leave-list article>div:first-child{display:grid;gap:5px;flex:1;min-width:0}
+.leave-list b{font-size:12px;color:#333}.leave-list small{font-size:10px;color:#999}.leave-list p{font-size:11px;color:#777;margin:0}
+.leave-status{font-size:10px;font-weight:700;text-transform:capitalize;padding:5px 8px;border-radius:20px;background:#fff5e7;color:#94600b}
+.leave-status.approved{background:#edf8ef;color:#28743d}.leave-status.rejected{background:#fff0f0;color:#b5242b}
+.leave-actions{display:flex;gap:6px}.leave-actions button{border:1px solid #e5e5e5;border-radius:7px;background:white;padding:7px 9px;font-size:10px;font-weight:700;color:#555;cursor:pointer}.leave-actions button:first-child{color:#28743d}
+@media(max-width:520px){.leave-list article{align-items:flex-start;flex-wrap:wrap}.leave-actions{width:100%}}
