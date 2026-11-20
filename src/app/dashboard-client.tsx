@@ -40,6 +40,7 @@ const modules = [
 
 export default function Dashboard({ fullName, role, userId }: { fullName: string; role: string; userId: string }) {
   const [active, setActive] = useState("Overview");
+  const [notificationFocus, setNotificationFocus] = useState(false);
   const visibleNav = nav.filter(([label]) => visibleModules(role as SdmaRole).includes(label));
   const roleLabel = role === "ceo" ? "CEO & Founder" : role === "operations_manager" ? "Operations Manager" : role === "team_lead" ? "Team Leader" : role.replaceAll("_", " ");
   const [open, setOpen] = useState(false);
@@ -49,12 +50,12 @@ export default function Dashboard({ fullName, role, userId }: { fullName: string
       <div className="brand"><div className="brand-mark">S</div><div><b>SHAH<span>.</span></b><small>OFFICE OS</small></div><button className="close-menu" onClick={() => setOpen(false)} aria-label="Close menu"><X size={18}/></button></div>
       <div className="workspace"><span className="workspace-icon">SD</span><div><b>Shah Digital</b><small>Agency workspace</small></div><ChevronDown size={15}/></div>
       <div className="nav-caption">WORKSPACE</div>
-      <nav>{visibleNav.map(([label, Icon]) => <button key={label} onClick={() => {setActive(label);setOpen(false);}} className={active === label ? "nav-item selected" : "nav-item"}><Icon size={18}/><span>{label}</span></button>)}</nav>
+      <nav>{visibleNav.map(([label, Icon]) => <button key={label} onClick={() => {setActive(label);setOpen(false);if(label === "Announcements") setNotificationFocus(false);}} className={active === label ? "nav-item selected" : "nav-item"}><Icon size={18}/><span>{label}</span></button>)}</nav>
       <div className="sidebar-bottom"><button className="nav-item"><Settings size={18}/>Settings</button><button className="nav-item"><CircleHelp size={18}/>Help & Support</button><div className="user-chip"><div className="avatar">SP</div><div><b>{fullName}</b><small>{roleLabel}</small></div><ChevronDown size={15}/></div></div>
     </aside>
     {open && <button className="scrim" onClick={() => setOpen(false)} aria-label="Close navigation"/>}
     <section className="main">
-      <header className="topbar"><div className="crumb"><button className="menu-button" onClick={() => setOpen(true)} aria-label="Open menu"><Menu size={20}/></button>Workspace <span>/</span> <b>{active}</b></div><div className="top-actions"><label className="search"><Search size={16}/><input placeholder="Search anything..."/></label><button className="icon-btn" aria-label="Notifications" onClick={() => setActive("Announcements")}><Bell size={19}/><i/></button><div className="top-avatar">SP</div></div></header>
+      <header className="topbar"><div className="crumb"><button className="menu-button" onClick={() => setOpen(true)} aria-label="Open menu"><Menu size={20}/></button>Workspace <span>/</span> <b>{active}</b></div><div className="top-actions"><label className="search"><Search size={16}/><input placeholder="Search anything..."/></label><button className="icon-btn" aria-label="Notifications" onClick={() => {setActive("Announcements");setNotificationFocus(true);}}><Bell size={19}/><i/></button><div className="top-avatar">SP</div></div></header>
       <div className="page">
         <div className="welcome"><div><div className="eyebrow">SHAH DIGITAL MARKETING AGENCY</div><h1>Good morning, {fullName.split(" ")[0]} <span>✦</span></h1><p>Your agency operations, all in one place.</p></div><div className="date-pill">{new Date().toLocaleDateString("en-IN",{weekday:"short",day:"2-digit",month:"short",year:"numeric"})}</div></div>
         {active === "Tasks & Projects" ? <TasksPanel role={role} userId={userId} />
@@ -66,7 +67,7 @@ export default function Dashboard({ fullName, role, userId }: { fullName: string
           : active === "Content Calendar" ? <ContentCalendarPanel role={role} userId={userId} />
           : active === "Ads & Leads" ? <AdsLeadsPanel role={role} userId={userId} />
           : active === "Finance & Payroll" ? <FinancePanel role={role} userId={userId} />
-          : active === "Announcements" ? <AnnouncementsPanel role={role} userId={userId} />
+          : active === "Announcements" ? <AnnouncementsPanel role={role} userId={userId} defaultTab={notificationFocus ? "notifications" : "announcements"} />
           : active === "Overview" ? <>
             <div className="section-head"><div><h2>Agency overview</h2><p>Live metrics will appear after secure data integration.</p></div><button className="period">Today <ChevronDown size={14}/></button></div>
             <div className="stats">
