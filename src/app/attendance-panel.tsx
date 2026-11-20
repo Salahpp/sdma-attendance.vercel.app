@@ -10,7 +10,9 @@ type AttendanceRow = {
   check_in_selfie_path:string|null; check_out_selfie_path:string|null; status:string;
 };
 function officeDate() {
-  return new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+  const parts = new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());
+  const part = (type:string) => parts.find(p => p.type === type)?.value || "";
+  return part("year")+"-"+part("month")+"-"+part("day");
 }
 function timeLabel(value:string|null) {
   return value ? new Date(value).toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Kolkata"}) : "—";
