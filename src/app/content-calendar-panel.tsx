@@ -127,14 +127,14 @@ export default function ContentCalendarPanel({ role, userId }: { role: string; u
     {loading ? <div className="task-empty"><Loader2 className="spin" size={22}/> Loading content calendar…</div> : filtered.length === 0 ? <div className="task-empty"><CalendarDays size={28}/><b>No content planned</b><span>Add a content item to start the calendar.</span></div> :
       <div className="content-list">{filtered.map(item => {
         const itemComments = comments.filter(comment => comment.content_item_id === item.id);
-        const allowedStatuses = isManager ? workflow : workflow.slice(0, 4);
+        const allowedStatuses = isManager ? workflow : [...workflow.slice(0, 4), ...(workflow.includes(item.status) ? [item.status] : [])];
         return <article className="content-card" key={item.id}>
           <div className="content-card-top"><div className="content-title"><b>{item.title}</b><span className={"content-status status-"+item.status}>{labels[item.status]}</span></div><span className="content-client">{clientFor(item.client_id)}</span></div>
           <div className="content-meta"><span>{item.platform || "Platform not set"}</span><span>{item.content_type || "Content"}</span><span><UserRound size={13}/>{nameFor(item.assigned_to)}</span>{item.due_at && <span><CalendarDays size={13}/>{new Date(item.due_at).toLocaleString("en-IN",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"})}</span>}</div>
           {item.caption && <p className="content-caption">{item.caption}</p>}
           {item.creative_path && <a className="content-link" href={item.creative_path} target="_blank" rel="noreferrer">Open creative reference ↗</a>}
           <div className="content-actions">
-            <label>Workflow<select value={item.status} onChange={e => void changeStatus(item, e.target.value as ContentStatus)}>{allowedStatuses.map(status => <option key={status} value={status}>{labels[status]}</option>)}</select></label>
+            <label>Workflow<select value={item.status} disabled={!isManager && !workflow.slice(0, 4).includes(item.status)} onChange={e => void changeStatus(item, e.target.value as ContentStatus)}>{allowedStatuses.map(status => <option key={status} value={status}>{labels[status]}</option>)}</select></label>
             <button className="secondary-action" onClick={() => setOpenComments(openComments === item.id ? null : item.id)}><MessageCircle size={14}/> Comments ({itemComments.length})</button>
             {item.status === "approved" && <span className="approval-note"><Check size={14}/> Approved</span>}
           </div>
