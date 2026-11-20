@@ -11,6 +11,7 @@ import ContentCalendarPanel from "./content-calendar-panel";
 import AdsLeadsPanel from "./ads-leads-panel";
 import FinancePanel from "./finance-panel";
 import AnnouncementsPanel from "./announcements-panel";
+import AgencyOverview from "./agency-overview";
 import { visibleModules, type SdmaRole } from "@/lib/auth/roles";
 import {
   Activity, Bell, CalendarDays, CheckCircle2, ChevronDown, CircleHelp,
@@ -69,14 +70,9 @@ export default function Dashboard({ fullName, role, userId }: { fullName: string
           : active === "Finance & Payroll" ? <FinancePanel role={role} userId={userId} />
           : active === "Announcements" ? <AnnouncementsPanel role={role} userId={userId} defaultTab={notificationFocus ? "notifications" : "announcements"} />
           : active === "Overview" ? <>
-            <div className="section-head"><div><h2>Agency overview</h2><p>Live metrics will appear after secure data integration.</p></div><button className="period">Today <ChevronDown size={14}/></button></div>
-            <div className="stats">
-              {[["Team members","—","Waiting for team data",Users,"red"],["Tasks in progress","—","Tasks will sync from workspace",Activity,"blue"],["Pending approvals","—","Creative and task reviews",CheckCircle2,"orange"],["Monthly expenses","—","Finance module not connected",Wallet,"green"]].map(([label,value,foot,Icon,tone]) => <article className="stat" key={String(label)}><div className="stat-top"><span>{String(label)}</span><span className={"stat-icon "+String(tone)}><Icon size={18}/></span></div><strong>{String(value)}</strong><small>{String(foot)}</small></article>)}
-            </div>
-            <div className="columns">
-              <section className="panel"><div className="panel-head"><div><h3>All modules</h3><p>Your agency, in one workspace</p></div><FolderKanban size={18}/></div><div className="module-grid">{modules.filter(([title])=>visibleModules(role as SdmaRole).includes(title)).map(([title,detail,Icon,tone]) => <button key={title} className="module" onClick={() => setActive(title)}><span className={"module-icon "+tone}><Icon size={20}/></span><b>{title}</b><small>{detail}</small></button>)}</div></section>
-              <section className="panel schedule"><div className="panel-head"><div><h3>Today at a glance</h3><p>Office hours · 9:30 AM – 5:30 PM</p></div><CalendarDays size={18}/></div><div className="timeline"><div><time>9:30 AM</time><i className="dot red-dot"/><section><b>Office starts</b><small>Team check-in window</small></section></div><div><time>10:30 AM</time><i className="dot blue-dot"/><section><b>Daily ads report</b><small>Client campaign performance update</small></section></div><div><time>5:00 PM</time><i className="dot green-dot"/><section><b>Evening reports</b><small>Task completion and blockers</small></section></div></div><div className="schedule-foot"><Clock3 size={15}/> Schedule can be configured in Office Settings.</div></section>
-            </div>
+            <AgencyOverview role={role} userId={userId} />
+            <div className="section-head agency-modules-heading"><div><h2>All modules</h2><p>Your agency, in one workspace</p></div></div>
+            <section className="panel"><div className="module-grid">{modules.filter(([title])=>visibleModules(role as SdmaRole).includes(title)).map(([title,detail,Icon,tone]) => <button key={title} className="module" onClick={() => setActive(title)}><span className={"module-icon "+tone}><Icon size={20}/></span><b>{title}</b><small>{detail}</small></button>)}</div></section>
             <footer><ShieldCheck size={15}/> Secure agency workspace <span>•</span> Role-based access enabled.</footer>
           </> : <section className="panel module-coming-soon"><div className="panel-head"><div><h3>{active}</h3><p>This workspace module is planned in the SDMA Office OS rollout.</p></div><ShieldCheck size={18}/></div><p>Access is role-controlled. The module will appear here after its database workflows and approval rules are completed.</p></section>}
       </div>
