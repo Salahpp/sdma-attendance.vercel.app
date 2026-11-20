@@ -1,0 +1,16 @@
+revoke execute on all functions in schema public from public;
+grant execute on function public.can_manage() to authenticated;
+grant execute on function public.current_role() to authenticated;
+grant execute on function public.current_sdma_role() to authenticated;
+grant execute on function public.current_user_role() to authenticated;
+grant execute on function public.is_ceo_or_ops() to authenticated;
+grant execute on function public.is_manager() to authenticated;
+grant execute on function public.is_sdma_manager() to authenticated;
+grant execute on function public.taskpro_is_manager() to authenticated;
+grant execute on function public.update_my_profile(text, text) to authenticated;
+revoke execute on function public.claim_first_admin() from authenticated;
+revoke execute on function public.handle_new_sdma_user() from anon, authenticated;
+revoke execute on function public.handle_new_user() from anon, authenticated;
+revoke execute on function public.protect_profile_role() from anon, authenticated;
+revoke execute on function public.touch_updated_at() from anon, authenticated;
+alter function public.touch_updated_at() set search_path = public, pg_catalog;
