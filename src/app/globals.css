@@ -260,3 +260,41 @@
 .announce-audience input{accent-color:#e31e24}
 @media(max-width:760px){.announce-toolbar{align-items:stretch;flex-direction:column}.announce-toolbar>.primary-action{width:100%;justify-content:center}.announce-summary{grid-template-columns:repeat(3,minmax(0,1fr))}.announce-summary b{font-size:18px}}
 @media(max-width:520px){.announce-summary{grid-template-columns:1fr 1fr}.announce-list{padding:13px}.announce-tabs{width:100%}.announce-tabs button{padding:8px 7px;font-size:10px}.notification-card,.reminder-card{flex-wrap:wrap}.notification-card>button,.reminder-card>button{margin-left:auto}}
+
+/* CEO / agency analytics overview */
+.agency-overview{display:grid;gap:15px;margin-bottom:22px}
+.agency-overview-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.agency-overview-head h2,.agency-modules-heading h2{font:700 15px Manrope;margin:0}
+.agency-overview-head p,.agency-modules-heading p{font-size:10px;color:#858993;margin:6px 0 0}
+.agency-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.agency-kpi{background:#fff;border:1px solid #eceef1;border-radius:10px;padding:15px}
+.agency-kpi>div{display:flex;align-items:center;justify-content:space-between;color:#777b85;font-size:10px;font-weight:600}
+.agency-kpi>div svg{color:#e31e24}
+.agency-kpi>b{display:block;font:800 25px Manrope;margin:10px 0 3px}
+.agency-kpi>small{font-size:9px;color:#9699a1}
+.agency-analytics-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.agency-progress-list{display:grid;gap:10px}
+.agency-progress-list>div:not(.agency-track):not(.agency-inline-stats){display:flex;justify-content:space-between;font-size:11px;color:#747782}
+.agency-progress-list b{color:#222}
+.agency-track{height:7px;background:#f0f1f3;border-radius:20px;overflow:hidden}
+.agency-track i{display:block;height:100%;background:#3b9b62;border-radius:20px}
+.agency-track i.open{background:#4a83c7}
+.agency-inline-stats{display:flex;gap:20px;border-top:1px solid #f0f1f3;padding-top:12px;font-size:10px;color:#777}
+.agency-inline-stats b{color:#222;margin-left:5px}
+.agency-ad-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.agency-ad-metrics article{background:#fafbfc;border:1px solid #eff0f2;border-radius:8px;padding:12px}
+.agency-ad-metrics small{display:block;color:#858993;font-size:9px;margin-bottom:6px}
+.agency-ad-metrics b{font:800 19px Manrope}
+.agency-staff-list{display:grid;gap:13px}
+.agency-staff-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;align-items:center}
+.agency-staff-row>div:first-child b{display:block;font-size:11px}
+.agency-staff-row>div:first-child small{display:block;color:#92959d;font-size:9px;margin-top:3px;text-transform:capitalize}
+.agency-staff-row>strong{font-size:11px}
+.agency-staff-row .agency-track{grid-column:1/-1;height:5px}
+.agency-lead-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.agency-lead-stats>div{padding:10px;background:#fafbfc;border:1px solid #eff0f2;border-radius:8px}
+.agency-lead-stats span{display:block;font-size:9px;color:#858993;text-transform:capitalize}
+.agency-lead-stats b{display:block;font:700 18px Manrope;margin-top:5px}
+.agency-modules-heading{margin:20px 0 12px}
+@media(max-width:900px){.agency-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.agency-analytics-grid{grid-template-columns:1fr}}
+@media(max-width:480px){.agency-overview-head{align-items:flex-start}.agency-kpi{padding:12px}.agency-kpi>b{font-size:22px}.agency-ad-metrics b{font-size:17px}.agency-inline-stats{gap:12px;flex-wrap:wrap}}
