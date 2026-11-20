@@ -34,11 +34,11 @@ export default function ClientsPanel({role}:{role:string}) {
   useEffect(()=>{void load();},[load]);
 
   async function createClientRecord(event:FormEvent<HTMLFormElement>) {
-    event.preventDefault();setSaving(true);setError("");setNotice("");
-    const form=new FormData(event.currentTarget);
+    event.preventDefault();const formElement=event.currentTarget;setSaving(true);setError("");setNotice("");
+    const form=new FormData(formElement);
     const payload={name:String(form.get("name")||"").trim(),contact_person:String(form.get("contact_person")||"").trim()||null,email:String(form.get("email")||"").trim()||null,phone:String(form.get("phone")||"").trim()||null,service_package:String(form.get("service_package")||"").trim()||null,notes:String(form.get("notes")||"").trim()||null,status:"active"};
     const {error}=await supabase.from("clients").insert(payload);
-    if(error)setError(error.message);else{setNotice("Client added.");event.currentTarget.reset();setShowClient(false);await load();}
+    if(error)setError(error.message);else{setNotice("Client added.");formElement.reset();setShowClient(false);await load();}
     setSaving(false);
   }
 
