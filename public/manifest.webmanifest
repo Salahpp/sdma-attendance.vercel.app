@@ -1,0 +1,11 @@
+{
+  "name": "SDMA Office OS",
+  "short_name": "SDMA OS",
+  "description": "Shah Digital Marketing Agency operations platform",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f8fa",
+  "theme_color": "#111111",
+  "orientation": "portrait",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
