@@ -11,9 +11,9 @@ const managerRoles=["ceo","operations_manager","team_lead","office_admin"];
 const roleOptions=[["ceo","CEO"],["operations_manager","Operations Manager"],["team_lead","Team Leader"],["office_admin","Office Admin"],["marketer","Marketer"],["designer","Designer"],["accounts","Accounts"],["staff","Staff"]];
 const days=[["Mon",1],["Tue",2],["Wed",3],["Thu",4],["Fri",5],["Sat",6],["Sun",0]] as const;
 const dateLabel=(v:string)=>new Date(v).toLocaleString("en-IN",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});
-export default function AnnouncementsPanel({role,userId}:{role:string;userId:string}){
+export default function AnnouncementsPanel({role,userId,defaultTab="announcements"}:{role:string;userId:string;defaultTab?:"announcements"|"notifications"}){
  const supabase=useMemo(()=>createClient(),[]),isManager=managerRoles.includes(role);
- const [tab,setTab]=useState<"announcements"|"notifications"|"reminders">("announcements");
+ const [tab,setTab]=useState<"announcements"|"notifications"|"reminders">(defaultTab);
  const [announcements,setAnnouncements]=useState<Announcement[]>([]),[notifications,setNotifications]=useState<Notification[]>([]),[reminders,setReminders]=useState<Reminder[]>([]);
  const [loading,setLoading]=useState(true),[saving,setSaving]=useState(false),[error,setError]=useState(""),[success,setSuccess]=useState("");
  const [showForm,setShowForm]=useState(false),[showReminderForm,setShowReminderForm]=useState(false);
