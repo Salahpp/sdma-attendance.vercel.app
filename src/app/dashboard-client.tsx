@@ -30,6 +30,7 @@ const modules = [
   ["Clients & CRM", "Accounts, services and projects", Users, "blue"],
   ["Content Calendar", "Plan, approve and publish content", CalendarDays, "purple"],
   ["Ads & Leads", "Campaign performance and lead flow", Megaphone, "orange"],
+  ["Finance & Payroll", "Expenses, approvals and salary records", Wallet, "green"],
   ["Attendance", "Selfie, GPS and work hours", Clock3, "green"],
   ["Daily Reports", "Morning and evening updates", FileBarChart2, "slate"],
   ["Leave Management", "Apply and review leave requests", CalendarDays, "green"],
