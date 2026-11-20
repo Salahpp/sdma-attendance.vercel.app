@@ -14,9 +14,9 @@ import AnnouncementsPanel from "./announcements-panel";
 import AgencyOverview from "./agency-overview";
 import { visibleModules, type SdmaRole } from "@/lib/auth/roles";
 import {
-  Activity, Bell, CalendarDays, CheckCircle2, ChevronDown, CircleHelp,
+  Bell, CalendarDays, ChevronDown, CircleHelp,
   ClipboardList, Clock3, FileBarChart2, LayoutDashboard, Menu, MessageSquareText,
-  Search, Settings, ShieldCheck, Users, Wallet, X, FolderKanban, Megaphone
+  Search, Settings, ShieldCheck, Users, Wallet, X, Megaphone
 } from "lucide-react";
 
 const nav = [
