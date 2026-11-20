@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "SDMA Office OS",
   description: "Shah Digital Marketing Agency — Office Operations Platform",
   applicationName: "SDMA Office OS",
+  robots: { index: false, follow: false },
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, statusBarStyle: "default", title: "SDMA Office OS" },
   icons: { icon: "/icon.svg", apple: "/icon.svg" }
