@@ -205,3 +205,25 @@
 .ad-report-metrics{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}.ad-report-metrics span{display:grid;gap:4px;padding:9px;background:#fafafa;border-radius:8px;color:#888;font-size:9px}.ad-report-metrics b{font-size:12px;color:#333}.ad-report-card>p{margin:0;color:#777;font-size:11px}
 @media(max-width:900px){.ads-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.ad-report-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:560px){.ads-kpis article>b{font-size:19px}.lead-controls{align-items:stretch;flex-direction:column}.lead-controls label{justify-content:space-between}.lead-controls select,.lead-controls input{max-width:65%}.lead-activity-compose{flex-wrap:wrap}.lead-activity-compose input{flex-basis:100%}.ad-report-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.ad-report-heading{flex-direction:column}}
+
+
+/* Finance, expense approvals and payroll */
+.finance-workspace{display:grid;gap:16px}
+.finance-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px}
+.finance-kpis article{display:grid;gap:7px;padding:15px;background:#fff;border:1px solid #ededed;border-radius:13px;min-width:0}
+.finance-kpis span{font-size:11px;color:#777}.finance-kpis b{font-size:22px;color:#222}.finance-kpis small{font-size:10px;color:#999}
+.finance-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.finance-tabs{display:flex;gap:7px}.finance-tabs button{display:flex;align-items:center;gap:7px;padding:9px 12px;border:0;border-radius:8px;background:transparent;color:#777;font-size:12px;cursor:pointer}
+.finance-tabs button.active{background:#fff0f0;color:#bd2026;font-weight:700}
+.finance-list{display:grid;gap:12px;background:#fff;border:1px solid #ececec;border-radius:14px;padding:17px}
+.finance-list .panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.finance-list .panel-head h3{margin:0 0 4px;font-size:15px}.finance-list .panel-head p{margin:0;color:#888;font-size:11px}
+.finance-row{display:flex;align-items:center;gap:12px;padding:13px 0;border-top:1px solid #f0f0f0;min-width:0}
+.finance-row-main{display:grid;gap:5px;flex:1;min-width:0}.finance-row-main b{font-size:12px;color:#333}.finance-row-main small{font-size:10px;color:#999}.finance-row-main p{margin:0;font-size:11px;color:#777}
+.finance-status{font-size:10px;font-weight:700;text-transform:capitalize;padding:5px 8px;border-radius:20px;background:#f2f2f2;color:#666;white-space:nowrap}
+.finance-status.pending,.finance-status.draft{background:#fff4e8;color:#94600b}.finance-status.approved,.finance-status.paid{background:#edf8ef;color:#28743d}.finance-status.rejected{background:#fff0f0;color:#b5242b}
+.finance-row-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.finance-row-actions button{display:inline-flex;align-items:center;gap:5px;padding:7px 9px;border:1px solid #e5e5e5;border-radius:7px;background:#fff;color:#555;font-size:10px;font-weight:700;cursor:pointer}
+.finance-alert{padding:10px 12px;border-radius:9px;font-size:12px}.finance-alert.error{background:#fff0f0;color:#ad242b}.finance-alert.success{background:#edf8ef;color:#28743d}
+@media(max-width:760px){.finance-kpis{grid-template-columns:1fr 1fr}.finance-row{align-items:flex-start;flex-wrap:wrap}.finance-row-main{flex-basis:calc(100% - 110px)}.finance-row-actions{width:100%}.finance-toolbar{align-items:flex-start;flex-direction:column}.finance-toolbar>.primary-action{width:100%;justify-content:center}}
+@media(max-width:460px){.finance-kpis{grid-template-columns:1fr}.finance-row{gap:8px}.finance-list{padding:13px}.finance-row-main{flex-basis:100%}}
