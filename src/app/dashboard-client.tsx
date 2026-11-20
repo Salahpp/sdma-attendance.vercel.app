@@ -10,6 +10,7 @@ import LeavePanel from "./leave-panel";
 import ContentCalendarPanel from "./content-calendar-panel";
 import AdsLeadsPanel from "./ads-leads-panel";
 import FinancePanel from "./finance-panel";
+import AnnouncementsPanel from "./announcements-panel";
 import { visibleModules, type SdmaRole } from "@/lib/auth/roles";
 import {
   Activity, Bell, CalendarDays, CheckCircle2, ChevronDown, CircleHelp,
@@ -53,7 +54,7 @@ export default function Dashboard({ fullName, role, userId }: { fullName: string
     </aside>
     {open && <button className="scrim" onClick={() => setOpen(false)} aria-label="Close navigation"/>}
     <section className="main">
-      <header className="topbar"><div className="crumb"><button className="menu-button" onClick={() => setOpen(true)} aria-label="Open menu"><Menu size={20}/></button>Workspace <span>/</span> <b>{active}</b></div><div className="top-actions"><label className="search"><Search size={16}/><input placeholder="Search anything..."/></label><button className="icon-btn" aria-label="Notifications"><Bell size={19}/><i/></button><div className="top-avatar">SP</div></div></header>
+      <header className="topbar"><div className="crumb"><button className="menu-button" onClick={() => setOpen(true)} aria-label="Open menu"><Menu size={20}/></button>Workspace <span>/</span> <b>{active}</b></div><div className="top-actions"><label className="search"><Search size={16}/><input placeholder="Search anything..."/></label><button className="icon-btn" aria-label="Notifications" onClick={() => setActive("Announcements")}><Bell size={19}/><i/></button><div className="top-avatar">SP</div></div></header>
       <div className="page">
         <div className="welcome"><div><div className="eyebrow">SHAH DIGITAL MARKETING AGENCY</div><h1>Good morning, {fullName.split(" ")[0]} <span>✦</span></h1><p>Your agency operations, all in one place.</p></div><div className="date-pill">{new Date().toLocaleDateString("en-IN",{weekday:"short",day:"2-digit",month:"short",year:"numeric"})}</div></div>
         {active === "Tasks & Projects" ? <TasksPanel role={role} userId={userId} />
@@ -65,6 +66,7 @@ export default function Dashboard({ fullName, role, userId }: { fullName: string
           : active === "Content Calendar" ? <ContentCalendarPanel role={role} userId={userId} />
           : active === "Ads & Leads" ? <AdsLeadsPanel role={role} userId={userId} />
           : active === "Finance & Payroll" ? <FinancePanel role={role} userId={userId} />
+          : active === "Announcements" ? <AnnouncementsPanel role={role} userId={userId} />
           : active === "Overview" ? <>
             <div className="section-head"><div><h2>Agency overview</h2><p>Live metrics will appear after secure data integration.</p></div><button className="period">Today <ChevronDown size={14}/></button></div>
             <div className="stats">
