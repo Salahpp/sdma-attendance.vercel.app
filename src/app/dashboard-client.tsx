@@ -8,6 +8,7 @@ import ClientsPanel from "./clients-panel";
 import DailyReportsPanel from "./daily-reports-panel";
 import LeavePanel from "./leave-panel";
 import ContentCalendarPanel from "./content-calendar-panel";
+import AdsLeadsPanel from "./ads-leads-panel";
 import { visibleModules, type SdmaRole } from "@/lib/auth/roles";
 import {
   Activity, Bell, CalendarDays, CheckCircle2, ChevronDown, CircleHelp,
@@ -60,6 +61,7 @@ export default function Dashboard({ fullName, role, userId }: { fullName: string
           : active === "Daily Reports" ? <DailyReportsPanel userId={userId} role={role} />
           : active === "Leave Management" ? <LeavePanel userId={userId} role={role} />
           : active === "Content Calendar" ? <ContentCalendarPanel role={role} userId={userId} />
+          : active === "Ads & Leads" ? <AdsLeadsPanel role={role} userId={userId} />
           : active === "Overview" ? <>
             <div className="section-head"><div><h2>Agency overview</h2><p>Live metrics will appear after secure data integration.</p></div><button className="period">Today <ChevronDown size={14}/></button></div>
             <div className="stats">
