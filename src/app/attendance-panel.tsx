@@ -64,6 +64,8 @@ export default function AttendancePanel({userId}:{userId:string}) {
     canvas.toBlob(blob=>{
       if(!blob){setError("Could not process selfie.");return;}
       setPhoto(blob);setPhotoUrl(URL.createObjectURL(blob));setMessage("Selfie captured. You can now punch attendance.");
+      if(streamRef.current) streamRef.current.getTracks().forEach(t=>t.stop());
+      streamRef.current=null;setCameraReady(false);
     },"image/jpeg",0.82);
   }
 
@@ -81,8 +83,8 @@ export default function AttendancePanel({userId}:{userId:string}) {
       const {error:uploadError}=await supabase.storage.from("attendance-selfies").upload(path,photo,{contentType:"image/jpeg",upsert:false});
       if(uploadError) throw uploadError;
       const args={p_lat:position.coords.latitude,p_lng:position.coords.longitude,p_selfie_path:path,p_note:note.trim()||null};
-      const {error:rpcError}=await supabase.rpc(isCheckIn?"attendance_check_in":"attendance_check_out",args);
-      if(rpcError) throw rpcError;
+      const rpcResult=isCheckIn?await supabase.rpc("attendance_check_in",args):await supabase.rpc("attendance_check_out",args);
+      if(rpcResult.error) throw rpcResult.error;
       setPhoto(null);setPhotoUrl("");setNote("");
       setMessage(isCheckIn?"Check-in recorded successfully.":"Check-out recorded successfully.");
       await load();
