@@ -56,7 +56,7 @@ export default function ContentCalendarPanel({ role, userId }: { role: string; u
   useEffect(() => { void load(); }, [load]);
 
   async function createContent(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); const form = new FormData(event.currentTarget);
+    event.preventDefault(); const formElement = event.currentTarget; const form = new FormData(formElement);
     const title = String(form.get("title") || "").trim();
     if (!title) return;
     setSaving(true); setError(""); setSuccess("");
@@ -75,7 +75,7 @@ export default function ContentCalendarPanel({ role, userId }: { role: string; u
     };
     const { error: insertError } = await supabase.from("content_items").insert(payload);
     if (insertError) setError(insertError.message);
-    else { setSuccess("Content item added to the calendar."); setShowForm(false); event.currentTarget.reset(); await load(); }
+    else { setSuccess("Content item added to the calendar."); setShowForm(false); formElement.reset(); await load(); }
     setSaving(false);
   }
 
