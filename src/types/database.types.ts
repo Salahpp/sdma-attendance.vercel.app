@@ -90,6 +90,7 @@ export type Database = {
           is_active: boolean
           priority: string
           title: string
+          target_roles: string[] | null
         }
         Insert: {
           body: string
@@ -100,6 +101,7 @@ export type Database = {
           is_active?: boolean
           priority?: string
           title: string
+          target_roles?: string[] | null
         }
         Update: {
           body?: string
@@ -110,6 +112,7 @@ export type Database = {
           is_active?: boolean
           priority?: string
           title?: string
+          target_roles?: string[] | null
         }
         Relationships: [
           {
@@ -634,6 +637,8 @@ export type Database = {
           read_at: string | null
           title: string
           user_id: string
+          reminder_id: string | null
+          reminder_date: string | null
         }
         Insert: {
           action_url?: string | null
@@ -644,6 +649,8 @@ export type Database = {
           read_at?: string | null
           title: string
           user_id: string
+          reminder_id?: string | null
+          reminder_date?: string | null
         }
         Update: {
           action_url?: string | null
@@ -654,6 +661,8 @@ export type Database = {
           read_at?: string | null
           title?: string
           user_id?: string
+          reminder_id?: string | null
+          reminder_date?: string | null
         }
         Relationships: [
           {
@@ -663,6 +672,54 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "notifications_reminder_id_fkey"
+            columns: ["reminder_id"]
+            isOneToOne: false
+            referencedRelation: "office_reminders"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      office_reminders: {
+        Row: {
+          id: string
+          title: string
+          body: string | null
+          reminder_time: string
+          days_of_week: number[]
+          is_active: boolean
+          created_by: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          body?: string | null
+          reminder_time: string
+          days_of_week?: number[]
+          is_active?: boolean
+          created_by?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          body?: string | null
+          reminder_time?: string
+          days_of_week?: number[]
+          is_active?: boolean
+          created_by?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "office_reminders_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
         ]
       }
       office_shifts: {
