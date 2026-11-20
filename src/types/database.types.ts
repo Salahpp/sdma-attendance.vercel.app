@@ -975,6 +975,8 @@ export type Database = {
       is_manager: { Args: never; Returns: boolean }
       is_sdma_manager: { Args: never; Returns: boolean }
       taskpro_is_manager: { Args: never; Returns: boolean }
+      attendance_check_in: { Args: { p_lat: number; p_lng: number; p_selfie_path: string; p_note?: string | null }; Returns: Json }
+      attendance_check_out: { Args: { p_lat: number; p_lng: number; p_selfie_path: string; p_note?: string | null }; Returns: Json }
       update_my_profile: {
         Args: { p_full_name: string; p_phone: string }
         Returns: undefined
