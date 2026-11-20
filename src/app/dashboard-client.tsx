@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { visibleModules, type SdmaRole } from "@/lib/auth/roles";
 import {
   Activity, Bell, CalendarDays, CheckCircle2, ChevronDown, CircleHelp,
   ClipboardList, Clock3, FileBarChart2, LayoutDashboard, Menu, MessageSquareText,
@@ -26,7 +27,7 @@ const modules = [
 
 export default function Dashboard({ fullName, role }: { fullName: string; role: string }) {
   const [active, setActive] = useState("Overview");
-  const visibleNav = nav.filter(([label]) => role !== "staff" || !["Clients & CRM", "Ads & Leads", "Team & Roles", "Finance & Payroll"].includes(label));
+  const visibleNav = nav.filter(([label]) => visibleModules(role as SdmaRole).includes(label));
   const roleLabel = role === "ceo" ? "CEO & Founder" : role === "operations_manager" ? "Operations Manager" : role === "team_lead" ? "Team Leader" : role.replaceAll("_", " ");
   const [open, setOpen] = useState(false);
 
