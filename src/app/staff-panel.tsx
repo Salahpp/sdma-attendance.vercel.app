@@ -64,8 +64,8 @@ export default function StaffPanel({ role, userId }: { role: string; userId: str
           <label>Phone<input name="phone" defaultValue={member.phone || ""}/></label>
           <label>Job title<input name="job_title" defaultValue={member.job_title || ""}/></label>
           <label>Department<input name="department" defaultValue={member.department || ""}/></label>
-          <label>Access role<select name="role" defaultValue={member.role} disabled={!canManage}>{roles.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
-          <label className="staff-active-toggle"><input name="is_active" type="checkbox" defaultChecked={member.is_active} disabled={!canManage}/> Active account</label>
+          <label>Access role<select name="role" defaultValue={member.role} disabled={!canManage || member.id===userId}>{roles.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
+          <label className="staff-active-toggle"><input name="is_active" type="checkbox" defaultChecked={member.is_active} disabled={!canManage || member.id===userId}/> Active account</label>
         </div>
         {canManage && <button className="primary-action staff-save" type="submit" disabled={saving===member.id}>{saving===member.id ? <Loader2 className="spin" size={15}/> : <Save size={15}/>} Save changes</button>}
       </form>)}</div>}
