@@ -62,11 +62,17 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
     const form = new FormData(event.currentTarget);
     const title = String(form.get("title") || "").trim();
     if (!title) { setError("Task title is required."); setSaving(false); return; }
+    const clientId = String(form.get("client_id") || "");
+    const projectId = String(form.get("project_id") || "");
+    const selectedProject = projects.find(project => project.id === projectId);
+    if (projectId && (!selectedProject || selectedProject.client_id !== clientId)) {
+      setError("Choose a project belonging to the selected client."); setSaving(false); return;
+    }
     const payload = {
       title, description: String(form.get("description") || "").trim() || null,
       client_name: clients.find(client => client.id === String(form.get("client_id") || ""))?.name || null,
-      project_name: projects.find(project => project.id === String(form.get("project_id") || ""))?.name || null,
-      project_id: String(form.get("project_id") || "") || null,
+      project_name: selectedProject?.name || null,
+      project_id: projectId || null,
       assigned_to: String(form.get("assigned_to") || "") || null,
       due_date: String(form.get("due_date") || "") || null,
       priority: String(form.get("priority") || "medium") as Task["priority"],
@@ -121,7 +127,7 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
         <label>Priority<select name="priority" defaultValue="medium"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option><option value="urgent">Urgent</option></select></label>
         <label>Due date<input name="due_date" type="date"/></label>
         <label>Client<select name="client_id" value={selectedClientId} onChange={e => { setSelectedClientId(e.target.value); setSelectedProjectId(""); }}><option value="">Select client</option>{clients.map(client => <option key={client.id} value={client.id}>{client.name}</option>)}</select></label>
-        <label>Project<select name="project_id" value={selectedProjectId} onChange={e => setSelectedProjectId(e.target.value)}><option value="">No linked project</option>{projects.filter(project => !selectedClientId || project.client_id === selectedClientId).map(project => <option key={project.id} value={project.id}>{project.name}</option>)}</select></label>
+        <label>Project<select name="project_id" disabled={!selectedClientId} value={selectedProjectId} onChange={e => setSelectedProjectId(e.target.value)}><option value="">No linked project</option>{projects.filter(project => selectedClientId && project.client_id === selectedClientId).map(project => <option key={project.id} value={project.id}>{project.name}</option>)}</select></label>
         <label>Category<input name="category" placeholder="Design, Ads, SEO..."/></label>
       </div>
       <button className="primary-action" type="submit" disabled={saving}>{saving ? <Loader2 className="spin" size={16}/> : <Plus size={16}/>} {saving ? "Saving..." : "Create task"}</button>
