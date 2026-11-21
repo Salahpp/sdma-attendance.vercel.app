@@ -43,7 +43,7 @@ export default function ContentCalendarPanel({ role, userId }: { role: string; u
     const [contentResult, peopleResult, clientResult, commentResult] = await Promise.all([
       supabase.from("content_items").select("*").order("due_at", { ascending: true, nullsFirst: false }).limit(300),
       supabase.from("profiles").select("id,full_name,role").eq("is_active", true).order("full_name"),
-      supabase.from("clients").select("id,name").order("name"),
+      supabase.rpc("sdma_list_content_clients"),
       supabase.from("content_comments").select("*").order("created_at", { ascending: true }).limit(500)
     ]);
     if (contentResult.error) setError(contentResult.error.message); else setItems((contentResult.data ?? []) as ContentItem[]);
