@@ -3,7 +3,7 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import type { Database } from "@/types/database.types";
 import { createClient } from "@/lib/supabase/client";
-import { RefreshCw, ShieldCheck, UserRound, Loader2, Save, Users, UserPlus, X, Mail, KeyRound, Copy } from "lucide-react";
+import { RefreshCw, ShieldCheck, UserRound, Loader2, Save, Users, UserPlus, X, KeyRound, Copy } from "lucide-react";
 
 type Member = { id: string; full_name: string; email: string | null; phone: string | null; job_title: string | null; department: string | null; role: string; is_active: boolean };
 const roles = [
