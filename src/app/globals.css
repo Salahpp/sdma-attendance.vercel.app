@@ -298,3 +298,19 @@
 .agency-modules-heading{margin:20px 0 12px}
 @media(max-width:900px){.agency-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.agency-analytics-grid{grid-template-columns:1fr}}
 @media(max-width:480px){.agency-overview-head{align-items:flex-start}.agency-kpi{padding:12px}.agency-kpi>b{font-size:22px}.agency-ad-metrics b{font-size:17px}.agency-inline-stats{gap:12px;flex-wrap:wrap}}
+
+
+/* New staff invitation */
+.staff-toolbar-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.staff-invite-panel{display:grid;gap:15px;padding:18px;background:#fff;border:1px solid #ececec;border-radius:14px}
+.staff-invite-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.staff-invite-heading h3{margin:0 0 5px;font-size:15px;color:#222}
+.staff-invite-heading p{margin:0;color:#888;font-size:11px;line-height:1.5}
+.staff-close{display:grid;place-items:center;width:32px;height:32px;border:1px solid #eee;border-radius:8px;background:#fff;color:#777;cursor:pointer}
+.staff-invite-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.staff-invite-grid label{display:grid;gap:6px;color:#666;font-size:11px;font-weight:650}
+.staff-invite-grid input,.staff-invite-grid select{width:100%;min-width:0;border:1px solid #e6e6e6;border-radius:8px;padding:10px;font:inherit;font-size:12px;color:#333;background:#fff}
+.staff-invite-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.staff-invite-actions>span{font-size:10px;color:#888}
+@media(max-width:760px){.staff-invite-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.staff-toolbar-actions{width:100%}.staff-toolbar-actions button{flex:1;justify-content:center}}
+@media(max-width:460px){.staff-invite-grid{grid-template-columns:1fr}.staff-invite-panel{padding:14px}.staff-invite-actions{align-items:stretch;flex-direction:column}.staff-invite-actions button{justify-content:center}}
