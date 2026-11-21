@@ -59,7 +59,7 @@ export default function AgencyOverview({ role, userId }: { role: string; userId:
   const approvedExpenses = data.expenses.filter(x => x.approval_status === "approved").reduce((s, x) => s + Number(x.amount || 0), 0);
   const pendingExpenses = data.expenses.filter(x => x.approval_status === "pending").reduce((s, x) => s + Number(x.amount || 0), 0);
 
-  const staffRows = data.staff.map(person => {
+  const staffRows: Array<Row & { total: number; done: number; rate: number }> = data.staff.map((person: Row) => {
     const assigned = tasks.filter(t => t.assigned_to === person.id);
     const done = assigned.filter(t => t.status === "completed").length;
     return { ...person, total: assigned.length, done, rate: assigned.length ? Math.round(done / assigned.length * 100) : 0 };
