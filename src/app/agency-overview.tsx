@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import StaffScoreboard from "./staff-scoreboard";
 import { Activity, Users, Clock3, CheckCircle2, AlertTriangle, Megaphone, Wallet, RefreshCw, TrendingUp } from "lucide-react";
 
 type Row = Record<string, any>;
@@ -73,6 +74,7 @@ export default function AgencyOverview({ role, userId }: { role: string; userId:
   ];
 
   return <div className="agency-overview">
+    <StaffScoreboard userId={userId} />
     <div className="agency-overview-head"><div><h2>Agency performance</h2><p>Live operational snapshot · {todayKey()}</p></div><button className="secondary-action" onClick={() => void load()}><RefreshCw size={14}/> Refresh data</button></div>
     {error && <div className="task-alert error">{error} Some figures may be unavailable under your role permissions.</div>}
     <div className="agency-kpis">{cards.map(({ label, value, note, Icon }) => <article className="agency-kpi" key={label}><div><span>{label}</span><Icon size={18}/></div><b>{loading ? "—" : value}</b><small>{note}</small></article>)}</div>
