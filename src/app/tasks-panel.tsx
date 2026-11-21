@@ -111,7 +111,7 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
     if (canAssign && projectId && (!selectedProject || selectedProject.client_id !== clientId)) {
       setError("Choose a project belonging to the selected client."); setSaving(false); return;
     }
-    const payload: Record<string, unknown> = {
+    const payload: { title: string; description: string | null; priority: Task["priority"]; due_date: string | null; category: string | null; assigned_to?: string | null; client_name?: string | null; project_name?: string | null; project_id?: string | null } = {
       title: String(form.get("title") || "").trim(),
       description: String(form.get("description") || "").trim() || null,
       priority: String(form.get("priority") || task.priority),
@@ -181,7 +181,7 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
               {canAssign && <>
                 <label>Assign to<select name="assigned_to" defaultValue={task.assigned_to||""}><option value="">Unassigned</option>{people.map(p=><option key={p.id} value={p.id}>{p.full_name||p.role}</option>)}</select></label>
                 <label>Client<select name="client_id" defaultValue={clients.find(c=>c.name===task.client_name)?.id||""}><option value="">No client</option>{clients.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
-                <label>Project<select name="project_id" defaultValue={task.project_id||""}><option value="">No linked project</option>{projects.filter(p=>p.client_id===clients.find(c=>c.name===task.client_name)?.id || p.id===task.project_id).map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
+                <label>Project<select name="project_id" defaultValue={task.project_id||""}><option value="">No linked project</option>{projects.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
               </>}
             </div>
             <div className="task-edit-actions"><button className="primary-action" type="submit" disabled={saving}>{saving?<Loader2 className="spin" size={15}/>:<Save size={15}/>} Save task</button><button className="secondary-action" type="button" onClick={()=>setEditingId(null)}>Cancel</button></div>
