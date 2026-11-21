@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import StaffScoreboard from "./staff-scoreboard";
+import AttendanceQuickCard from "./attendance-quick-card";
 import { Activity, Users, Clock3, CheckCircle2, AlertTriangle, Megaphone, Wallet, RefreshCw, TrendingUp } from "lucide-react";
 
 type Row = Record<string, any>;
@@ -12,7 +13,7 @@ const todayKey = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkat
 const monthStart = () => todayKey().slice(0, 7) + "-01";
 const money = (n: number) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n || 0);
 
-export default function AgencyOverview({ role, userId }: { role: string; userId: string }) {
+export default function AgencyOverview({ role, userId, onOpenAttendance }: { role: string; userId: string; onOpenAttendance?: () => void }) {
   const db = useMemo(() => createClient(), []);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -74,6 +75,7 @@ export default function AgencyOverview({ role, userId }: { role: string; userId:
   ];
 
   return <div className="agency-overview">
+    {onOpenAttendance && <AttendanceQuickCard userId={userId} onOpen={onOpenAttendance} />}
     <StaffScoreboard userId={userId} />
     <div className="agency-overview-head"><div><h2>Agency performance</h2><p>Live operational snapshot · {todayKey()}</p></div><button className="secondary-action" onClick={() => void load()}><RefreshCw size={14}/> Refresh data</button></div>
     {error && <div className="task-alert error">{error} Some figures may be unavailable under your role permissions.</div>}
