@@ -36,6 +36,8 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
   const [editingId, setEditingId] = useState<string | null>(null);
   const [filter, setFilter] = useState("all");
   const canAssign = ["ceo", "operations_manager", "team_lead", "office_admin"].includes(role);
+  const canApprove = ["ceo", "team_lead"].includes(role);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true); setError("");
@@ -135,6 +137,8 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
   }
 
   const filtered = filter === "all" ? tasks : tasks.filter((task) => task.status === filter);
+  const columns: Array<{ key: Task["status"]; label: string }> = [{key:"todo",label:"To do"},{key:"in_progress",label:"In progress"},{key:"review",label:"Awaiting approval"},{key:"completed",label:"Completed"},{key:"blocked",label:"Blocked"}];
+  async function moveTask(task: Task, next: Task["status"]) { if (next === "completed" && !canApprove) { setError("Only the CEO or Team Lead can approve task completion."); return; } if (task.status !== next) await changeStatus(task,next); setDraggingId(null); }
   const counts = {
     all: tasks.length, todo: tasks.filter(t => t.status === "todo").length,
     in_progress: tasks.filter(t => t.status === "in_progress").length,
@@ -167,35 +171,29 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
       <button className="primary-action" type="submit" disabled={saving}>{saving ? <Loader2 className="spin" size={16}/> : <Plus size={16}/>} {saving ? "Saving..." : "Create task"}</button>
     </form>}
     {loading ? <div className="task-empty"><Loader2 className="spin" size={22}/> Loading tasks…</div> : filtered.length === 0 ? <div className="task-empty"><CircleCheck size={28}/><b>No tasks here yet</b><span>Create a task to start tracking agency work.</span></div> :
-      <div className="task-list">{filtered.map(task => {
-        const canEdit = canAssign || task.assigned_to === userId;
-        return <article className="task-row task-row-editable" key={task.id}>
-          {editingId === task.id ? <form className="task-edit-form" onSubmit={e=>void updateTask(e,task)}>
-            <div className="task-form-heading"><b>Edit task</b><button type="button" onClick={()=>setEditingId(null)}><X size={14}/> Cancel</button></div>
-            <label>Task title<input name="title" required defaultValue={task.title}/></label>
-            <label>Description<textarea name="description" rows={3} defaultValue={task.description||""}/></label>
-            <div className="task-form-grid">
-              <label>Priority<select name="priority" defaultValue={task.priority}><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option><option value="urgent">Urgent</option></select></label>
-              <label>Due date<input name="due_date" type="date" defaultValue={task.due_date||""}/></label>
-              <label>Category<input name="category" defaultValue={task.category||""}/></label>
-              {canAssign && <>
-                <label>Assign to<select name="assigned_to" defaultValue={task.assigned_to||""}><option value="">Unassigned</option>{people.map(p=><option key={p.id} value={p.id}>{p.full_name||p.role}</option>)}</select></label>
-                <label>Client<select name="client_id" defaultValue={clients.find(c=>c.name===task.client_name)?.id||""}><option value="">No client</option>{clients.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
-                <label>Project<select name="project_id" defaultValue={task.project_id||""}><option value="">No linked project</option>{projects.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
+      <div className="task-kanban">{columns.map(column => {
+        const columnTasks = filtered.filter(task => task.status === column.key);
+        return <section className="kanban-column" key={column.key} onDragOver={event=>event.preventDefault()} onDrop={event=>{event.preventDefault();const task=tasks.find(item=>item.id===draggingId);if(task)void moveTask(task,column.key);}}>
+          <header><b>{column.label}</b><span>{columnTasks.length}</span></header><div className="kanban-cards">{columnTasks.map(task => {
+            const canEdit=canAssign||task.assigned_to===userId;
+            return <article className="kanban-card" key={task.id} draggable onDragStart={()=>setDraggingId(task.id)} onDragEnd={()=>setDraggingId(null)}>
+              {editingId===task.id?<form className="task-edit-form" onSubmit={e=>void updateTask(e,task)}>
+                <div className="task-form-heading"><b>Edit task</b><button type="button" onClick={()=>setEditingId(null)}><X size={14}/> Cancel</button></div>
+                <label>Task title<input name="title" required defaultValue={task.title}/></label><label>Description<textarea name="description" rows={3} defaultValue={task.description||""}/></label>
+                <div className="task-form-grid"><label>Priority<select name="priority" defaultValue={task.priority}><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option><option value="urgent">Urgent</option></select></label><label>Due date<input name="due_date" type="date" defaultValue={task.due_date||""}/></label><label>Category<input name="category" defaultValue={task.category||""}/></label>
+                {canAssign&&<><label>Assign to<select name="assigned_to" defaultValue={task.assigned_to||""}><option value="">Unassigned</option>{people.map(p=><option key={p.id} value={p.id}>{p.full_name||p.role}</option>)}</select></label><label>Client<select name="client_id" defaultValue={clients.find(x=>x.name===task.client_name)?.id||""}><option value="">No client</option>{clients.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label><label>Project<select name="project_id" defaultValue={task.project_id||""}><option value="">No linked project</option>{projects.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label></>}</div>
+                <div className="task-edit-actions"><button className="primary-action" type="submit" disabled={saving}>{saving?<Loader2 className="spin" size={15}/>:<Save size={15}/>} Save task</button><button className="secondary-action" type="button" onClick={()=>setEditingId(null)}>Cancel</button></div>
+              </form>:<>
+                <div className="kanban-card-top"><span className={"priority priority-"+task.priority}>{priorityLabels[task.priority]}</span><span className="kanban-grip">DRAG</span></div>
+                <b className="kanban-task-title">{task.title}</b>{task.description&&<p>{task.description}</p>}
+                <div className="task-meta">{task.client_name&&<span>{task.client_name}</span>}{task.project_name&&<span>{task.project_name}</span>}<span><UserRound size={13}/> {personName(task.assigned_to)}</span>{task.due_date&&<span><CalendarClock size={13}/> {new Date(task.due_date+"T00:00:00").toLocaleDateString("en-IN")}</span>}</div>
+                <div className="kanban-card-actions">{canEdit&&<button type="button" className="secondary-action" onClick={()=>setEditingId(task.id)}><Pencil size={13}/> Edit</button>}
+                {!canApprove&&task.status!=="review"&&task.status!=="completed"&&<button type="button" className="primary-action" onClick={()=>void moveTask(task,"review")}>Submit for approval</button>}
+                {canApprove&&task.status==="review"&&<button type="button" className="primary-action" onClick={()=>void moveTask(task,"completed")}><CircleCheck size={14}/> Approve</button>}</div>
               </>}
-            </div>
-            <div className="task-edit-actions"><button className="primary-action" type="submit" disabled={saving}>{saving?<Loader2 className="spin" size={15}/>:<Save size={15}/>} Save task</button><button className="secondary-action" type="button" onClick={()=>setEditingId(null)}>Cancel</button></div>
-          </form> : <>
-            <div className="task-main"><div className="task-title-line"><b>{task.title}</b><span className={"priority priority-"+task.priority}>{priorityLabels[task.priority]}</span></div>
-              {task.description && <p>{task.description}</p>}
-              <div className="task-meta">{task.client_name && <span>{task.client_name}</span>}{task.project_name && <span>{task.project_name}</span>}<span><UserRound size={13}/> {personName(task.assigned_to)}</span>{task.due_date && <span><CalendarClock size={13}/> {new Date(task.due_date+"T00:00:00").toLocaleDateString("en-IN")}</span>}</div>
-            </div>
-            <div className="task-row-actions">
-              <select aria-label={"Update status for "+task.title} value={task.status} onChange={e => void changeStatus(task, e.target.value as Task["status"])}><option value="todo">To do</option><option value="in_progress">In progress</option><option value="review">Review</option><option value="completed">Completed</option><option value="blocked">Blocked</option></select>
-              {canEdit && <button type="button" className="secondary-action task-edit-button" onClick={()=>setEditingId(task.id)}><Pencil size={14}/> Edit</button>}
-            </div>
-          </>}
-        </article>;
+            </article>;
+          })}</div>
+        </section>;
       })}</div>}
   </section>;
 }
