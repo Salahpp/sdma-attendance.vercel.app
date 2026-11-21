@@ -9,9 +9,11 @@ type Task = {
   project_name: string | null; assigned_to: string | null; due_date: string | null;
   priority: "low" | "medium" | "high" | "urgent";
   status: "todo" | "in_progress" | "review" | "completed" | "blocked";
-  category: string | null; created_at: string;
+  category: string | null; created_at: string; project_id: string | null;
 };
 type Person = { id: string; full_name: string; role: string };
+type Client = { id: string; name: string };
+type Project = { id: string; client_id: string | null; name: string; status: string };
 
 const statusLabels: Record<Task["status"], string> = {
   todo: "To do", in_progress: "In progress", review: "Review", completed: "Completed", blocked: "Blocked"
@@ -22,6 +24,9 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
   const supabase = useMemo(() => createClient(), []);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [people, setPeople] = useState<Person[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [selectedClientId, setSelectedClientId] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -32,14 +37,20 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
 
   const load = useCallback(async () => {
     setLoading(true); setError("");
-    const [taskResult, peopleResult] = await Promise.all([
+    const [taskResult, peopleResult, clientResult, projectResult] = await Promise.all([
       supabase.from("tasks").select("*").order("created_at", { ascending: false }).limit(200),
-      canAssign ? supabase.from("profiles").select("id,full_name,role").eq("is_active", true).order("full_name") : Promise.resolve({ data: [], error: null })
+      canAssign ? supabase.from("profiles").select("id,full_name,role").eq("is_active", true).order("full_name") : Promise.resolve({ data: [], error: null }),
+      canAssign ? supabase.from("clients").select("id,name").order("name") : Promise.resolve({ data: [], error: null }),
+      canAssign ? supabase.from("projects").select("id,client_id,name,status").order("name") : Promise.resolve({ data: [], error: null })
     ]);
     if (taskResult.error) setError(taskResult.error.message);
     else setTasks((taskResult.data ?? []) as Task[]);
     if (peopleResult.error) setError(peopleResult.error.message);
     else setPeople((peopleResult.data ?? []) as Person[]);
+    if (clientResult?.error) setError(clientResult.error.message);
+    else setClients((clientResult?.data ?? []) as Client[]);
+    if (projectResult?.error) setError(projectResult.error.message);
+    else setProjects((projectResult?.data ?? []) as Project[]);
     setLoading(false);
   }, [supabase, canAssign]);
 
@@ -52,8 +63,9 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
     if (!title) { setError("Task title is required."); setSaving(false); return; }
     const payload = {
       title, description: String(form.get("description") || "").trim() || null,
-      client_name: String(form.get("client_name") || "").trim() || null,
-      project_name: String(form.get("project_name") || "").trim() || null,
+      client_name: clients.find(client => client.id === String(form.get("client_id") || ""))?.name || null,
+      project_name: projects.find(project => project.id === String(form.get("project_id") || ""))?.name || null,
+      project_id: String(form.get("project_id") || "") || null,
       assigned_to: String(form.get("assigned_to") || "") || null,
       due_date: String(form.get("due_date") || "") || null,
       priority: String(form.get("priority") || "medium") as Task["priority"],
@@ -64,7 +76,7 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
     if (insertError) setError(insertError.message);
     else {
       if (data?.id) await supabase.from("task_activity").insert({ task_id: data.id, actor_id: userId, action: "created", details: { title } });
-      setSuccess("Task created successfully."); formElement.reset(); setShowForm(false); await load();
+      setSuccess("Task created successfully."); formElement.reset(); setSelectedClientId(""); setShowForm(false); await load();
     }
     setSaving(false);
   }
