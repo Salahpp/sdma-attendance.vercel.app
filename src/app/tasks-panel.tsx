@@ -128,7 +128,7 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
     const { error: updateError } = await supabase.from("tasks").update(payload).eq("id", task.id);
     if (updateError) setError(updateError.message);
     else {
-      await supabase.from("task_activity").insert({ task_id: task.id, actor_id: userId, action: "task_edited", details: { title: payload.title } });
+      await supabase.from("task_activity").insert({ task_id: task.id, actor_id: userId, action: "task_edited", details: { title: String(payload.title) } });
       setSuccess("Task updated successfully."); setEditingId(null); await load();
     }
     setSaving(false);
