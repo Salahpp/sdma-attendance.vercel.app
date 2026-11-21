@@ -27,6 +27,7 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
   const [clients, setClients] = useState<Client[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedClientId, setSelectedClientId] = useState("");
+  const [selectedProjectId, setSelectedProjectId] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -76,7 +77,7 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
     if (insertError) setError(insertError.message);
     else {
       if (data?.id) await supabase.from("task_activity").insert({ task_id: data.id, actor_id: userId, action: "created", details: { title } });
-      setSuccess("Task created successfully."); formElement.reset(); setSelectedClientId(""); setShowForm(false); await load();
+      setSuccess("Task created successfully."); formElement.reset(); setSelectedClientId(""); setSelectedProjectId(""); setShowForm(false); await load();
     }
     setSaving(false);
   }
@@ -105,7 +106,7 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
   return <section className="tasks-workspace">
     <div className="tasks-toolbar">
       <div><h2>Tasks & Projects</h2><p>Assign work, follow progress and review completion.</p></div>
-      <div className="tasks-actions"><button className="secondary-action" onClick={() => void load()}><RefreshCw size={15}/> Refresh</button>{canAssign && <button className="primary-action" onClick={() => setShowForm(v => !v)}><Plus size={16}/> New task</button>}</div>
+      <div className="tasks-actions"><button className="secondary-action" onClick={() => void load()}><RefreshCw size={15}/> Refresh</button>{canAssign && <button className="primary-action" onClick={() => { setShowForm(v => !v); setSelectedClientId(""); setSelectedProjectId(""); }}><Plus size={16}/> New task</button>}</div>
     </div>
     <div className="task-metrics">
       {(["all","todo","in_progress","review","completed"] as const).map(key => <button key={key} onClick={() => setFilter(key)} className={filter === key ? "task-filter active" : "task-filter"}><span>{key === "all" ? "All tasks" : statusLabels[key]}</span><b>{counts[key]}</b></button>)}
@@ -119,8 +120,8 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
         <label>Assign to<select name="assigned_to" defaultValue=""><option value="">Unassigned</option>{people.map(p => <option key={p.id} value={p.id}>{p.full_name || p.role}</option>)}</select></label>
         <label>Priority<select name="priority" defaultValue="medium"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option><option value="urgent">Urgent</option></select></label>
         <label>Due date<input name="due_date" type="date"/></label>
-        <label>Client<input name="client_name" placeholder="Client name"/></label>
-        <label>Project<input name="project_name" placeholder="Project / campaign"/></label>
+        <label>Client<select name="client_id" value={selectedClientId} onChange={e => { setSelectedClientId(e.target.value); setSelectedProjectId(""); }}><option value="">Select client</option>{clients.map(client => <option key={client.id} value={client.id}>{client.name}</option>)}</select></label>
+        <label>Project<select name="project_id" value={selectedProjectId} onChange={e => setSelectedProjectId(e.target.value)}><option value="">No linked project</option>{projects.filter(project => !selectedClientId || project.client_id === selectedClientId).map(project => <option key={project.id} value={project.id}>{project.name}</option>)}</select></label>
         <label>Category<input name="category" placeholder="Design, Ads, SEO..."/></label>
       </div>
       <button className="primary-action" type="submit" disabled={saving}>{saving ? <Loader2 className="spin" size={16}/> : <Plus size={16}/>} {saving ? "Saving..." : "Create task"}</button>
