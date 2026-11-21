@@ -376,3 +376,15 @@
 .score-person{min-width:0;flex:1;display:grid;gap:4px}.score-person b{font-size:12px;color:#292929}.score-person small{font-size:10px;color:#888}
 .score-row>strong{font-size:16px;color:#252525}.score-row>strong small{font-size:9px;color:#999;font-weight:500}
 @media(max-width:760px){.task-kanban{grid-template-columns:repeat(5,minmax(245px,1fr))}.staff-scoreboard .panel-head{gap:8px}.my-score{align-items:flex-start;flex-direction:column;gap:5px}}
+
+
+/* Dashboard attendance quick action and private selfie previews */
+.attendance-quick-card{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid #eceef1;border-radius:12px;padding:15px 17px;margin-bottom:16px}
+.quick-attendance-icon{width:42px;height:42px;border-radius:11px;background:#fff0f0;color:#e31e24;display:grid;place-items:center;flex-shrink:0}
+.quick-attendance-copy{display:grid;gap:3px;flex:1}.quick-attendance-copy span{font-size:10px;color:#888}.quick-attendance-copy b{font-size:13px;color:#222}.quick-attendance-copy strong{font:800 19px Manrope;color:#e31e24}.quick-attendance-copy small{font-size:10px;color:#999}
+.attendance-selfie-pair{display:flex;gap:8px;flex-wrap:wrap;margin-top:5px}
+.attendance-selfie-pair a{display:grid;gap:4px;color:#777;text-decoration:none;font-size:9px}
+.attendance-selfie-pair img{width:68px;height:68px;object-fit:cover;border-radius:8px;border:1px solid #eee}
+.attendance-location-link{font-size:10px;color:#bd1d24;text-decoration:none}
+.team-attendance-list article{align-items:center}
+@media(max-width:620px){.attendance-quick-card{align-items:flex-start;flex-wrap:wrap}.attendance-quick-card .primary-action{width:100%}}
