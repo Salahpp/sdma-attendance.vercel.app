@@ -314,3 +314,10 @@
 .staff-invite-actions>span{font-size:10px;color:#888}
 @media(max-width:760px){.staff-invite-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.staff-toolbar-actions{width:100%}.staff-toolbar-actions button{flex:1;justify-content:center}}
 @media(max-width:460px){.staff-invite-grid{grid-template-columns:1fr}.staff-invite-panel{padding:14px}.staff-invite-actions{align-items:stretch;flex-direction:column}.staff-invite-actions button{justify-content:center}}
+
+
+/* Advanced attendance month report and manager corrections */
+.attendance-monthly .client-summary{grid-template-columns:repeat(4,minmax(0,1fr));margin:12px 0}
+.attendance-correction{grid-column:1/-1;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.attendance-correction select,.attendance-correction input{min-width:110px;max-width:160px;padding:8px;border:1px solid #e5e5e5;border-radius:8px;background:#fff;font:inherit;font-size:12px}
+@media(max-width:650px){.attendance-monthly .client-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.attendance-correction{grid-column:1/-1}.attendance-correction select,.attendance-correction input{flex:1;min-width:0}}
