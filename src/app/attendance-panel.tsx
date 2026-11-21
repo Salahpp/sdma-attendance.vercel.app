@@ -38,6 +38,8 @@ export default function AttendancePanel({userId,role}:{userId:string;role:string
   const [busy,setBusy] = useState(false);
   const [error,setError] = useState("");
   const [message,setMessage] = useState("");
+  const [liveNow,setLiveNow] = useState(Date.now());
+  const [selfieUrls,setSelfieUrls] = useState<Record<string,{checkIn?:string;checkOut?:string}>>({});
 
   const load = useCallback(async()=>{
     setLoading(true); setError("");
@@ -57,12 +59,17 @@ export default function AttendancePanel({userId,role}:{userId:string;role:string
         supabase.from("attendance").select("*").eq("attendance_date",officeDate()).order("check_in",{ascending:true}),
         supabase.from("profiles").select("id,full_name,role,is_active").eq("is_active",true).order("full_name")
       ]);
-      if(attendanceResult.error)setError(attendanceResult.error.message);else setTeamRows((attendanceResult.data??[]) as AttendanceRow[]);
+      if(attendanceResult.error)setError(attendanceResult.error.message);else {
+        const rows=(attendanceResult.data??[]) as AttendanceRow[]; setTeamRows(rows);
+        const signed=await Promise.all(rows.map(async row=>{const [ci,co]=await Promise.all([row.check_in_selfie_path?supabase.storage.from("attendance-selfies").createSignedUrl(row.check_in_selfie_path,3600):Promise.resolve({data:null}),row.check_out_selfie_path?supabase.storage.from("attendance-selfies").createSignedUrl(row.check_out_selfie_path,3600):Promise.resolve({data:null})]);return [row.id,{checkIn:ci.data?.signedUrl,checkOut:co.data?.signedUrl}] as const;}));
+        setSelfieUrls(Object.fromEntries(signed));
+      }
       if(peopleResult.error)setError(peopleResult.error.message);else setTeamMembers((peopleResult.data??[]) as TeamMember[]);
     }
     setLoading(false);
   },[supabase,userId,canMonitorTeam,month]);
   useEffect(()=>{void load();},[load]);
+  useEffect(()=>{const timer=window.setInterval(()=>setLiveNow(Date.now()),1000);return()=>window.clearInterval(timer);},[]);
   useEffect(()=>()=>{if(streamRef.current) streamRef.current.getTracks().forEach(t=>t.stop());},[]);
   useEffect(()=>{return ()=>{if(photoUrl) URL.revokeObjectURL(photoUrl);};},[photoUrl]);
 
@@ -145,9 +152,9 @@ export default function AttendancePanel({userId,role}:{userId:string;role:string
   const checkedIn=Boolean(record?.check_in);
   const checkedOut=Boolean(record?.check_out);
   const start=record?.check_in?new Date(record.check_in).getTime():0;
-  const end=record?.check_out?new Date(record.check_out).getTime():Date.now();
+  const end=record?.check_out?new Date(record.check_out).getTime():liveNow;
   const hours=checkedIn?Math.max(0,(end-start)/3600000):0;
-  const duration=checkedIn?Math.floor(hours)+"h "+Math.floor((hours%1)*60)+"m":"—";
+  const duration=checkedIn?Math.floor(hours)+"h "+Math.floor((hours%1)*60)+"m "+Math.floor((hours*60-Math.floor(hours*60))*60)+"s":"—";
 
   return <section className="attendance-workspace">
     <div className="tasks-toolbar"><div><h2>Attendance</h2><p>Daily selfie and GPS verified check-in / check-out.</p></div><button className="secondary-action" onClick={()=>void load()}><RefreshCw size={15}/> Refresh</button></div>
@@ -174,7 +181,7 @@ export default function AttendancePanel({userId,role}:{userId:string;role:string
     </div>}
     {loading&&<div className="task-empty"><Loader2 className="spin" size={20}/> Loading attendance…</div>}
     {error&&<p className="task-alert error">{error}</p>}{message&&<p className="task-alert success">{message}</p>}
-    {canMonitorTeam&&<section className="team-attendance"><div className="panel-head"><div><h3>Team attendance</h3><p>Today’s check-in status across active staff</p></div><Users size={18}/></div><div className="team-attendance-list">{teamMembers.map(person=>{const row=teamRows.find(r=>r.user_id===person.id);return <article key={person.id}><div className="team-person"><b>{person.full_name||"Staff member"}</b><small>{person.role.replaceAll("_"," ")}</small></div><span className={row?.check_in?(row.check_out?"staff-status active":"attendance-live"):"attendance-pending"}>{row?.check_out?"Completed":row?.check_in?"Working":"Not checked in"}</span><time>{timeLabel(row?.check_in||null)}</time><time>{timeLabel(row?.check_out||null)}</time></article>;})}</div></section>}
+    {canMonitorTeam&&<section className="team-attendance"><div className="panel-head"><div><h3>Team attendance</h3><p>Today’s check-in status across active staff</p></div><Users size={18}/></div><div className="team-attendance-list">{teamMembers.map(person=>{const row=teamRows.find(r=>r.user_id===person.id);return <article key={person.id}><div className="team-person"><b>{person.full_name||"Staff member"}</b><small>{person.role.replaceAll("_"," ")}</small></div><span className={row?.check_in?(row.check_out?"staff-status active":"attendance-live"):"attendance-pending"}>{row?.check_out?"Completed":row?.check_in?"Working":"Not checked in"}</span><time>In: {timeLabel(row?.check_in||null)}</time><time>Out: {timeLabel(row?.check_out||null)}</time><div className="attendance-selfie-pair">{selfieUrls[row?.id||""]?.checkIn&&<a href={selfieUrls[row!.id]?.checkIn} target="_blank" rel="noreferrer"><img src={selfieUrls[row!.id]?.checkIn} alt={person.full_name+" check-in selfie"}/><small>Check-in selfie</small></a>}{selfieUrls[row?.id||""]?.checkOut&&<a href={selfieUrls[row!.id]?.checkOut} target="_blank" rel="noreferrer"><img src={selfieUrls[row!.id]?.checkOut} alt={person.full_name+" check-out selfie"}/><small>Check-out selfie</small></a>}</div>{row?.check_in_lat!=null&&<a className="attendance-location-link" href={"https://maps.google.com/?q="+row.check_in_lat+","+row.check_in_lng} target="_blank" rel="noreferrer">View GPS location</a>}</article>;})}</div></section>}
     <section className="team-reports attendance-monthly">
       <div className="panel-head"><div><h3>Monthly attendance report</h3><p>{canMonitorTeam?"Team attendance and manager corrections":"Your monthly attendance history"}</p></div><label>Month<input type="month" value={month} onChange={e=>{if(e.target.value)setMonth(e.target.value)}}/></label></div>
       <div className="client-summary">
