@@ -321,3 +321,30 @@
 .attendance-correction{grid-column:1/-1;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .attendance-correction select,.attendance-correction input{min-width:110px;max-width:160px;padding:8px;border:1px solid #e5e5e5;border-radius:8px;background:#fff;font:inherit;font-size:12px}
 @media(max-width:650px){.attendance-monthly .client-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.attendance-correction{grid-column:1/-1}.attendance-correction select,.attendance-correction input{flex:1;min-width:0}}
+
+
+/* Staff temporary credentials and task editing */
+.staff-credential-panel{position:relative;display:grid;gap:10px;padding:16px 42px 16px 16px;margin:14px 0;border:1px solid #f1c8c8;border-radius:14px;background:#fffafa}
+.staff-credential-panel>div:first-child{display:grid;gap:4px}
+.staff-credential-panel b{font-size:14px;color:#222}
+.staff-credential-panel p,.staff-credential-panel small{margin:0;color:#777;font-size:12px;line-height:1.5}
+.staff-credential-value{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.staff-credential-value code{padding:10px 12px;border:1px dashed #d9a5a5;border-radius:8px;background:#fff;font-size:14px;letter-spacing:.06em;user-select:all}
+.staff-credential-panel .staff-close{position:absolute;right:10px;top:10px;border:0;background:transparent;color:#777;cursor:pointer}
+.staff-card-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.staff-card-actions .staff-save{margin-top:0}
+.staff-reset-password{display:inline-flex;align-items:center;gap:7px}
+.password-setup-note{display:flex;align-items:center;gap:9px;padding:12px;border-radius:10px;background:#f7f7f7;color:#555;font-size:12px;margin:0 0 14px}
+.password-setup-card form{display:grid;gap:14px}
+.password-setup-card form label{display:grid;gap:7px;font-size:13px;font-weight:600;color:#333}
+.password-setup-card form input{width:100%;padding:12px;border:1px solid #ddd;border-radius:9px;font:inherit}
+.password-setup-card form button{display:flex;align-items:center;justify-content:center;gap:8px}
+.task-row-editable{display:block}
+.task-row-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.task-row-actions select{max-width:150px}
+.task-edit-button{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.task-edit-form{display:grid;gap:12px;width:100%;padding:14px;border:1px solid #eee;border-radius:12px;background:#fff}
+.task-edit-form>label{display:grid;gap:6px;font-size:12px;font-weight:600;color:#444}
+.task-edit-form input,.task-edit-form textarea,.task-edit-form select{width:100%;min-width:0;padding:10px;border:1px solid #e5e5e5;border-radius:8px;background:#fff;font:inherit;font-size:13px}
+.task-edit-actions{display:flex;gap:8px;flex-wrap:wrap}
+@media(max-width:600px){.staff-card-actions{display:grid}.staff-card-actions button{width:100%}.task-row-actions{justify-content:flex-start}.task-row-actions select{max-width:100%;flex:1}.staff-credential-value code{max-width:100%;overflow-wrap:anywhere}}
