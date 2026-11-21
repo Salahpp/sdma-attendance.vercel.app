@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Camera, MapPin, Clock3, LogIn, LogOut, Loader2, RefreshCw, ShieldCheck, Users } from "lucide-react";
 
@@ -8,7 +8,7 @@ type TeamMember = {id:string;full_name:string;role:string;is_active:boolean};
 type AttendanceRow = {
   id:string; user_id:string; attendance_date:string; check_in:string|null; check_out:string|null;
   check_in_lat:number|null; check_in_lng:number|null; check_out_lat:number|null; check_out_lng:number|null;
-  check_in_selfie_path:string|null; check_out_selfie_path:string|null; status:string;
+  check_in_selfie_path:string|null; check_out_selfie_path:string|null; status:string; break_minutes:number;
 };
 function officeDate() {
   const parts = new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());
@@ -26,6 +26,9 @@ export default function AttendancePanel({userId,role}:{userId:string;role:string
   const [record,setRecord] = useState<AttendanceRow|null>(null);
   const [teamRows,setTeamRows] = useState<AttendanceRow[]>([]);
   const [teamMembers,setTeamMembers] = useState<TeamMember[]>([]);
+  const [month,setMonth] = useState(officeDate().slice(0,7));
+  const [monthRows,setMonthRows] = useState<AttendanceRow[]>([]);
+  const [correctingId,setCorrectingId] = useState<string|null>(null);
   const canMonitorTeam=["ceo","operations_manager","team_lead","office_admin"].includes(role);
   const [loading,setLoading] = useState(true);
   const [cameraReady,setCameraReady] = useState(false);
@@ -38,8 +41,17 @@ export default function AttendancePanel({userId,role}:{userId:string;role:string
 
   const load = useCallback(async()=>{
     setLoading(true); setError("");
-    const {data,error}=await supabase.from("attendance").select("*").eq("user_id",userId).eq("attendance_date",officeDate()).maybeSingle();
-    if(error) setError(error.message); else setRecord(data as AttendanceRow|null);
+    const monthStart = month + "-01";
+    const [year, monthNumber] = month.split("-").map(Number);
+    const monthEnd = new Date(Date.UTC(year, monthNumber, 1)).toISOString().slice(0,10);
+    let monthlyQuery = supabase.from("attendance").select("*").gte("attendance_date",monthStart).lt("attendance_date",monthEnd).order("attendance_date",{ascending:false});
+    if(!canMonitorTeam) monthlyQuery = monthlyQuery.eq("user_id",userId);
+    const [todayResult,monthResult] = await Promise.all([
+      supabase.from("attendance").select("*").eq("user_id",userId).eq("attendance_date",officeDate()).maybeSingle(),
+      monthlyQuery
+    ]);
+    if(todayResult.error) setError(todayResult.error.message); else setRecord(todayResult.data as AttendanceRow|null);
+    if(monthResult.error) setError(monthResult.error.message); else setMonthRows((monthResult.data??[]) as AttendanceRow[]);
     if(canMonitorTeam){
       const [attendanceResult,peopleResult]=await Promise.all([
         supabase.from("attendance").select("*").eq("attendance_date",officeDate()).order("check_in",{ascending:true}),
@@ -49,7 +61,7 @@ export default function AttendancePanel({userId,role}:{userId:string;role:string
       if(peopleResult.error)setError(peopleResult.error.message);else setTeamMembers((peopleResult.data??[]) as TeamMember[]);
     }
     setLoading(false);
-  },[supabase,userId,canMonitorTeam]);
+  },[supabase,userId,canMonitorTeam,month]);
   useEffect(()=>{void load();},[load]);
   useEffect(()=>()=>{if(streamRef.current) streamRef.current.getTracks().forEach(t=>t.stop());},[]);
   useEffect(()=>{return ()=>{if(photoUrl) URL.revokeObjectURL(photoUrl);};},[photoUrl]);
@@ -107,6 +119,29 @@ export default function AttendancePanel({userId,role}:{userId:string;role:string
     } finally {setBusy(false);}
   }
 
+  async function saveCorrection(event:FormEvent<HTMLFormElement>,row:AttendanceRow) {
+    event.preventDefault();
+    const form=new FormData(event.currentTarget);
+    const status=String(form.get("status")||row.status);
+    const breakMinutes=Math.max(0,Number(form.get("break_minutes")||0));
+    setCorrectingId(row.id);setError("");setMessage("");
+    const {error:updateError}=await supabase.from("attendance").update({status,break_minutes:breakMinutes}).eq("id",row.id);
+    if(updateError){setError(updateError.message);setCorrectingId(null);return;}
+    const {error:auditError}=await supabase.from("audit_logs").insert({actor_id:userId,action:"attendance_corrected",entity_type:"attendance",entity_id:row.id,metadata:{status,break_minutes:breakMinutes}});
+    setMessage(auditError?"Attendance updated, but the audit note could not be saved: "+auditError.message:"Attendance record corrected.");
+    setCorrectingId(null);await load();
+  }
+
+  const monthMinutes=monthRows.reduce((total,row)=>{
+    if(!row.check_in)return total;
+    const startAt=new Date(row.check_in).getTime();
+    const endAt=row.check_out?new Date(row.check_out).getTime():(row.attendance_date===officeDate()?Date.now():startAt);
+    return total+Math.max(0,Math.floor((endAt-startAt)/60000)-Number(row.break_minutes||0));
+  },0);
+  const monthPresent=monthRows.filter(row=>row.status==="present"||row.status==="late").length;
+  const monthLate=monthRows.filter(row=>row.status==="late").length;
+  const personName=(id:string)=>teamMembers.find(person=>person.id===id)?.full_name||"Team member";
+
   const checkedIn=Boolean(record?.check_in);
   const checkedOut=Boolean(record?.check_out);
   const start=record?.check_in?new Date(record.check_in).getTime():0;
@@ -140,6 +175,25 @@ export default function AttendancePanel({userId,role}:{userId:string;role:string
     {loading&&<div className="task-empty"><Loader2 className="spin" size={20}/> Loading attendance…</div>}
     {error&&<p className="task-alert error">{error}</p>}{message&&<p className="task-alert success">{message}</p>}
     {canMonitorTeam&&<section className="team-attendance"><div className="panel-head"><div><h3>Team attendance</h3><p>Today’s check-in status across active staff</p></div><Users size={18}/></div><div className="team-attendance-list">{teamMembers.map(person=>{const row=teamRows.find(r=>r.user_id===person.id);return <article key={person.id}><div className="team-person"><b>{person.full_name||"Staff member"}</b><small>{person.role.replaceAll("_"," ")}</small></div><span className={row?.check_in?(row.check_out?"staff-status active":"attendance-live"):"attendance-pending"}>{row?.check_out?"Completed":row?.check_in?"Working":"Not checked in"}</span><time>{timeLabel(row?.check_in||null)}</time><time>{timeLabel(row?.check_out||null)}</time></article>;})}</div></section>}
+    <section className="team-reports attendance-monthly">
+      <div className="panel-head"><div><h3>Monthly attendance report</h3><p>{canMonitorTeam?"Team attendance and manager corrections":"Your monthly attendance history"}</p></div><label>Month<input type="month" value={month} onChange={e=>setMonth(e.target.value)}/></label></div>
+      <div className="client-summary">
+        <div><span>Recorded days</span><b>{monthRows.length}</b></div>
+        <div><span>Present / late</span><b>{monthPresent}</b></div>
+        <div><span>Late days</span><b>{monthLate}</b></div>
+        <div><span>Working hours</span><b>{Math.floor(monthMinutes/60)}h {monthMinutes%60}m</b></div>
+      </div>
+      {monthRows.length===0?<div className="task-empty">No attendance records for this month.</div>:<div className="team-report-list">{monthRows.map(row=><article key={row.id}>
+        <div><b>{canMonitorTeam?personName(row.user_id):row.attendance_date}</b><small>{canMonitorTeam?row.attendance_date:"Attendance record"}</small></div>
+        <div><span className={"leave-status "+row.status}>{row.status.replaceAll("_"," ")}</span><small>{timeLabel(row.check_in)} – {timeLabel(row.check_out)}</small></div>
+        <div><b>{(()=>{if(!row.check_in)return "—";const st=new Date(row.check_in).getTime();const en=row.check_out?new Date(row.check_out).getTime():(row.attendance_date===officeDate()?Date.now():st);const mins=Math.max(0,Math.floor((en-st)/60000)-Number(row.break_minutes||0));return Math.floor(mins/60)+"h "+mins%60+"m";})()}</b><small>Break: {row.break_minutes||0} min</small></div>
+        {canMonitorTeam&&<form className="attendance-correction" onSubmit={e=>void saveCorrection(e,row)}>
+          <select name="status" defaultValue={row.status}><option value="present">Present</option><option value="late">Late</option><option value="half_day">Half day</option><option value="absent">Absent</option><option value="leave">Leave</option></select>
+          <input name="break_minutes" type="number" min="0" max="1440" defaultValue={row.break_minutes||0} aria-label="Break minutes"/>
+          <button className="secondary-action" type="submit" disabled={correctingId===row.id}>{correctingId===row.id?"Saving…":"Correct"}</button>
+        </form>}
+      </article>)}</div>}
+    </section>
     <p className="staff-footnote"><MapPin size={13}/> GPS access is requested only when you submit a punch. Attendance is not queued offline; a successful server response is required to confirm the punch.</p>
   </section>;
 }
