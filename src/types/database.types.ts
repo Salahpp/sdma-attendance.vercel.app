@@ -1038,6 +1038,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      sdma_list_content_clients: { Args: never; Returns: { id: string; name: string }[] }
       can_manage: { Args: never; Returns: boolean }
       claim_first_admin: { Args: never; Returns: boolean }
       current_role: { Args: never; Returns: string }
