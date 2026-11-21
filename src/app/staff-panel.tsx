@@ -3,7 +3,7 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import type { Database } from "@/types/database.types";
 import { createClient } from "@/lib/supabase/client";
-import { RefreshCw, ShieldCheck, UserRound, Loader2, Save, Users, UserPlus, X, Mail } from "lucide-react";
+import { RefreshCw, ShieldCheck, UserRound, Loader2, Save, Users, UserPlus, X, Mail, KeyRound, Copy } from "lucide-react";
 
 type Member = { id: string; full_name: string; email: string | null; phone: string | null; job_title: string | null; department: string | null; role: string; is_active: boolean };
 const roles = [
@@ -21,6 +21,8 @@ export default function StaffPanel({ role, userId }: { role: string; userId: str
   const [showInvite,setShowInvite] = useState(false);
   const [error,setError] = useState("");
   const [notice,setNotice] = useState("");
+  const [credential,setCredential] = useState<{userId:string;email:string;password:string}|null>(null);
+  const [resetting,setResetting] = useState<string|null>(null);
   const [search,setSearch] = useState("");
   const canManage = role === "ceo" || role === "operations_manager";
   const assignableRoles = roles.filter(([value]) => value !== "ceo" && (role === "ceo" || value !== "operations_manager"));
@@ -48,13 +50,31 @@ export default function StaffPanel({ role, userId }: { role: string; userId: str
     };
     const {data,error} = await supabase.functions.invoke("ceo-create-staff", { body: payload });
     if (error || data?.error) {
-      setError(data?.error || error?.message || "Could not send staff invitation.");
+      setError(data?.error || error?.message || "Could not create staff account.");
     } else {
-      setNotice(`Invitation sent to ${payload.email}. They can create their password from the email link.`);
+      setCredential({userId:data.user.id,email:payload.email,password:data.temporary_password});
+      setNotice(`Staff login created for ${payload.email}. Share the temporary password securely.`);
       setShowInvite(false);
       await load();
     }
     setInviting(false);
+  }
+
+  async function resetStaffPassword(member:Member) {
+    setResetting(member.id);setError("");setNotice("");setCredential(null);
+    const {data,error}=await supabase.functions.invoke("staff-password-management",{body:{action:"reset",user_id:member.id}});
+    if(error||data?.error) setError(data?.error||error?.message||"Could not reset staff password.");
+    else {
+      setCredential({userId:member.id,email:data.email,password:data.temporary_password});
+      setNotice("Temporary password generated. Share it privately with "+member.full_name+".");
+    }
+    setResetting(null);
+  }
+
+  async function copyCredential() {
+    if(!credential)return;
+    try { await navigator.clipboard.writeText(credential.password);setNotice("Temporary password copied. Share it privately."); }
+    catch { setError("Clipboard access unavailable. Select and copy the password manually."); }
   }
 
   async function saveMember(event: FormEvent<HTMLFormElement>, member: Member) {
@@ -80,7 +100,7 @@ export default function StaffPanel({ role, userId }: { role: string; userId: str
   return <section className="staff-workspace">
     <div className="tasks-toolbar"><div><h2>Team & Roles</h2><p>Manage staff profiles, departments and access levels.</p></div><div className="staff-toolbar-actions"><button className="secondary-action" onClick={() => void load()}><RefreshCw size={15}/> Refresh</button>{canManage && <button className="primary-action" onClick={() => {setShowInvite(v=>!v);setError("");setNotice("");}}><UserPlus size={15}/> Add Staff</button>}</div></div>
     {showInvite && canManage && <form className="staff-invite-panel" onSubmit={e=>void inviteStaff(e)}>
-      <div className="staff-invite-heading"><div><h3>Invite a new team member</h3><p>We’ll email a secure invitation link so they can set their own password.</p></div><button type="button" className="staff-close" onClick={()=>setShowInvite(false)} aria-label="Close"><X size={18}/></button></div>
+      <div className="staff-invite-heading"><div><h3>Invite a new team member</h3><p>A secure temporary password will be generated. Staff must change it on first login.</p></div><button type="button" className="staff-close" onClick={()=>setShowInvite(false)} aria-label="Close"><X size={18}/></button></div>
       <div className="staff-invite-grid">
         <label>Full name *<input name="new_full_name" required placeholder="Staff full name"/></label>
         <label>Work email *<input name="new_email" type="email" required placeholder="name@example.com"/></label>
@@ -89,11 +109,18 @@ export default function StaffPanel({ role, userId }: { role: string; userId: str
         <label>Department<input name="new_department" placeholder="e.g. Marketing"/></label>
         <label>Access role *<select name="new_role" defaultValue="staff">{assignableRoles.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
       </div>
-      <div className="staff-invite-actions"><button className="primary-action" type="submit" disabled={inviting}>{inviting ? <Loader2 className="spin" size={15}/> : <Mail size={15}/>} {inviting ? "Sending invitation…" : "Send invitation"}</button><span>Staff will set their own password from the email.</span></div>
+      <div className="staff-invite-actions"><button className="primary-action" type="submit" disabled={inviting}>{inviting ? <Loader2 className="spin" size={15}/> : <UserPlus size={15}/>} {inviting ? "Creating login…" : "Create staff login"}</button><span>Temporary password is shown once after account creation.</span></div>
     </form>}
     <div className="staff-summary"><div><Users size={18}/><span>Total team</span><b>{members.length}</b></div><div><UserRound size={18}/><span>Active staff</span><b>{activeCount}</b></div><div><ShieldCheck size={18}/><span>Inactive</span><b>{members.length-activeCount}</b></div></div>
     <input className="staff-search" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search name, role or department…"/>
     {error && <p className="task-alert error">{error}</p>}{notice && <p className="task-alert success">{notice}</p>}
+    {credential&&<div className="staff-credential-panel">
+      <div><b>Temporary login password</b><p>{credential.email} · Share privately with this staff member. It will be required only for first login.</p></div>
+      <div className="staff-credential-value"><code>{credential.password}</code><button type="button" className="secondary-action" onClick={()=>void copyCredential()}><Copy size={14}/> Copy</button></div>
+      <small>After signing in, the staff member must create their own password before opening the dashboard.</small>
+      <button type="button" className="staff-close" onClick={()=>setCredential(null)} aria-label="Hide temporary password"><X size={16}/></button>
+    </div>}
+
     {!canManage && <p className="task-alert">You have read-only access to the team directory.</p>}
     {loading ? <div className="task-empty"><Loader2 className="spin" size={22}/> Loading team…</div> : filtered.length === 0 ? <div className="task-empty">No team members found.</div> :
       <div className="staff-list">{filtered.map(member=><form key={member.id} className="staff-card" onSubmit={e=>void saveMember(e,member)}>
@@ -106,8 +133,11 @@ export default function StaffPanel({ role, userId }: { role: string; userId: str
           <label>Access role<select name="role" defaultValue={member.role} disabled={!canManage || member.id===userId}>{assignableRoles.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
           <label className="staff-active-toggle"><input name="is_active" type="checkbox" defaultChecked={member.is_active} disabled={!canManage || member.id===userId}/> Active account</label>
         </div>
-        {canManage && <button className="primary-action staff-save" type="submit" disabled={saving===member.id}>{saving===member.id ? <Loader2 className="spin" size={15}/> : <Save size={15}/>} Save changes</button>}
+        {canManage && <div className="staff-card-actions">
+          <button className="primary-action staff-save" type="submit" disabled={saving===member.id}>{saving===member.id ? <Loader2 className="spin" size={15}/> : <Save size={15}/>} Save changes</button>
+          {member.id!==userId && member.role!=="ceo" && <button type="button" className="secondary-action staff-reset-password" onClick={()=>void resetStaffPassword(member)} disabled={resetting===member.id}>{resetting===member.id?<Loader2 className="spin" size={15}/>:<KeyRound size={15}/>} Reset login password</button>}
+        </div>}
       </form>)}</div>}
-    <p className="staff-footnote">New staff accounts are created through a secure email invitation. Existing profiles can be edited here.</p>
+    <p className="staff-footnote">New staff accounts receive a one-time temporary password. Existing staff passwords can be reset here; staff must choose a private password at first login.</p>
   </section>;
 }
