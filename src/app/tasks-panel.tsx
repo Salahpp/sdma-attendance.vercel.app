@@ -114,7 +114,7 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
     const payload: { title: string; description: string | null; priority: Task["priority"]; due_date: string | null; category: string | null; assigned_to?: string | null; client_name?: string | null; project_name?: string | null; project_id?: string | null } = {
       title: String(form.get("title") || "").trim(),
       description: String(form.get("description") || "").trim() || null,
-      priority: String(form.get("priority") || task.priority),
+      priority: String(form.get("priority") || task.priority) as Task["priority"],
       due_date: String(form.get("due_date") || "") || null,
       category: String(form.get("category") || "").trim() || null
     };
