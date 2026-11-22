@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { FileBarChart2, Loader2, Printer, RefreshCw } from "lucide-react";
 
 type Client = { id: string; name: string };
 type Report = { id: string; client_id: string | null; report_date: string; platform: string; campaign_name: string | null; spend: number; impressions: number; clicks: number; leads: number; sales_count: number; sales_value: number; notes: string | null };
 const money = (v: number) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(Number(v || 0));
-const monthStart = () => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0, 10); };
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+const monthStart = () => today().slice(0, 8) + "01";
 
 export default function ReportsPanel() {
   const supabase = useMemo(() => createClient(), []);
@@ -20,7 +20,7 @@ export default function ReportsPanel() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true); setError("");
     const [c, r] = await Promise.all([
       supabase.from("clients").select("id,name").order("name"),
@@ -29,8 +29,8 @@ export default function ReportsPanel() {
     if (c.error) setError(c.error.message); else setClients((c.data || []) as Client[]);
     if (r.error) setError(r.error.message); else setReports((r.data || []) as Report[]);
     setLoading(false);
-  }
-  useEffect(() => { void load(); }, []);
+  }, [supabase, from, to]);
+  useEffect(() => { void load(); }, [load]);
   const filtered = reports.filter(r => !clientId || r.client_id === clientId);
   const spend = filtered.reduce((s, r) => s + Number(r.spend), 0);
   const sales = filtered.reduce((s, r) => s + Number(r.sales_value), 0);
