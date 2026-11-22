@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { Sparkles, Loader2, Copy, RotateCcw, WandSparkles, PenLine, ListTodo, ChartNoAxesCombined, Megaphone, Bot, ArrowUpRight, ShieldCheck } from "lucide-react";
 
 const modes = [
@@ -19,7 +20,7 @@ const suggestions: Record<(typeof modes)[number]["id"], string> = {
   general: "Help me plan today's priorities as the founder of a digital marketing agency."
 };
 
-export default function AiEnginePanel() {
+export default function AiEnginePanel({ userId }: { userId: string }) {\n  const supabase = useMemo(() => createClient(), []);\n  const [clients, setClients] = useState<{id:string;name:string}[]>([]);\n  const [clientId, setClientId] = useState("");\n  const [savedMessage, setSavedMessage] = useState("");\n  useEffect(() => { void supabase.from("clients").select("id,name").order("name").then(({data}) => setClients(data || [])); }, [supabase]);
   const [mode, setMode] = useState<(typeof modes)[number]["id"]>("content");
   const [prompt, setPrompt] = useState("");
   const [result, setResult] = useState("");
@@ -28,7 +29,7 @@ export default function AiEnginePanel() {
 
   async function generate() {
     if (!prompt.trim() || busy) return;
-    setBusy(true); setError(""); setResult("");
+    setBusy(true); setError(""); setResult(""); setSavedMessage("");
     try {
       const response = await fetch("/api/ai", {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -69,7 +70,7 @@ export default function AiEnginePanel() {
         <div className="ai-safety-note"><ShieldCheck size={16}/><span><b>Human-approved by design</b><small>AI outputs are drafts. Nothing is sent, published or assigned automatically.</small></span></div>
       </aside>
     </div>
-    {result && <section className="ai-result-card"><div className="ai-result-head"><div><span className="ai-step">YOUR GENERATED OUTPUT</span><h3>{activeMode.label} result</h3></div><div className="ai-result-actions"><button type="button" onClick={()=>navigator.clipboard.writeText(result)}><Copy size={14}/> Copy</button><button type="button" onClick={()=>{setResult("");}}><RotateCcw size={14}/> Clear</button></div></div><pre>{result}</pre></section>}
+    {result && <section className="ai-result-card"><div className="ai-result-head"><div><span className="ai-step">YOUR GENERATED OUTPUT</span><h3>{activeMode.label} result</h3></div><div className="ai-result-actions"><button type="button" onClick={()=>navigator.clipboard.writeText(result)}><Copy size={14}/> Copy</button><button type="button" onClick={()=>{setResult("");setSavedMessage("");}}><RotateCcw size={14}/> Clear</button></div></div><pre>{result}</pre>{(mode === "content" || mode === "task") && <div className="ai-save-row">{mode === "content" && <select value={clientId} onChange={e=>setClientId(e.target.value)}><option value="">No client selected</option>{clients.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select>}<button type="button" onClick={async()=>{setError("");setSavedMessage("");const title=(mode==="content"?"AI content draft: ":"AI task suggestion: ")+prompt.trim().slice(0,75);const resultInsert=mode==="content"?await supabase.from("content_items").insert({title,caption:result,client_id:clientId||null,content_type:"AI plan",platform:"Instagram",status:"idea",created_by:userId}):await supabase.from("tasks").insert({title:"AI suggestion: "+prompt.trim().slice(0,75),description:result,priority:"medium",status:"todo",created_by:userId});if(resultInsert.error)setError(resultInsert.error.message);else setSavedMessage(mode==="content"?"Saved to Content Calendar as an idea draft.":"Saved to Tasks as a to-do suggestion.");}} className="ai-save-button"> {mode==="content"?"Save to Content Calendar":"Save as Task Draft"} </button></div>}{savedMessage && <p className="ai-saved-message">{savedMessage}</p>}</section>}
     <div className="ai-footer-note"><ShieldCheck size={14}/> Do not enter passwords, API keys or sensitive personal client data.</div>
   </div>;
 }
