@@ -76,7 +76,7 @@ export default function AgencyOverview({ role, userId, onOpenAttendance }: { rol
 
   return <div className="agency-overview">
     {onOpenAttendance && <AttendanceQuickCard userId={userId} onOpen={onOpenAttendance} />}
-    <StaffScoreboard userId={userId} />
+    <StaffScoreboard userId={userId} role={role} />
     <div className="agency-overview-head"><div><h2>Agency performance</h2><p>Live operational snapshot · {todayKey()}</p></div><button className="secondary-action" onClick={() => void load()}><RefreshCw size={14}/> Refresh data</button></div>
     {error && <div className="task-alert error">{error} Some figures may be unavailable under your role permissions.</div>}
     <div className="agency-kpis">{cards.map(({ label, value, note, Icon }) => <article className="agency-kpi" key={label}><div><span>{label}</span><Icon size={18}/></div><b>{loading ? "—" : value}</b><small>{note}</small></article>)}</div>
