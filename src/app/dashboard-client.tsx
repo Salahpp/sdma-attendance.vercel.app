@@ -27,6 +27,8 @@ const nav = [
   ["Finance & Payroll", Wallet], ["Announcements", MessageSquareText]
 ] as const;
 
+const mobilePrimary = ["Overview", "Tasks & Projects", "Attendance", "Content Calendar", "Announcements"] as const;
+
 const modules = [
   ["Tasks & Projects", "Assign, track and review work", ClipboardList, "red"],
   ["Clients & CRM", "Accounts, services and projects", Users, "blue"],
@@ -48,7 +50,7 @@ export default function Dashboard({ fullName, role, userId }: { fullName: string
 
   return <main className="shell">
     <aside className={open ? "sidebar open" : "sidebar"}>
-      <div className="brand"><div className="brand-mark">S</div><div><b>SHAH<span>.</span></b><small>OFFICE OS</small></div><button className="close-menu" onClick={() => setOpen(false)} aria-label="Close menu"><X size={18}/></button></div>
+      <div className="brand"><img className="brand-logo" src="/shah-logo.svg" alt="Shah Digital Marketing Agency" /><div><b>SHAH<span>.</span></b><small>OFFICE OS</small></div><button className="close-menu" onClick={() => setOpen(false)} aria-label="Close menu"><X size={18}/></button></div>
       <div className="workspace"><span className="workspace-icon">SD</span><div><b>Shah Digital</b><small>Agency workspace</small></div><ChevronDown size={15}/></div>
       <div className="nav-caption">WORKSPACE</div>
       <nav>{visibleNav.map(([label, Icon]) => <button key={label} onClick={() => {setActive(label);setOpen(false);if(label === "Announcements") setNotificationFocus(false);}} className={active === label ? "nav-item selected" : "nav-item"}><Icon size={18}/><span>{label}</span></button>)}</nav>
@@ -76,6 +78,7 @@ export default function Dashboard({ fullName, role, userId }: { fullName: string
             <footer><ShieldCheck size={15}/> Secure agency workspace <span>•</span> Role-based access enabled.</footer>
           </> : <section className="panel module-coming-soon"><div className="panel-head"><div><h3>{active}</h3><p>This workspace module is planned in the SDMA Office OS rollout.</p></div><ShieldCheck size={18}/></div><p>Access is role-controlled. The module will appear here after its database workflows and approval rules are completed.</p></section>}
       </div>
+      <nav className="mobile-tabbar" aria-label="Primary navigation">{mobilePrimary.filter(label => label === "Overview" || visibleModules(role as SdmaRole).includes(label)).map(label => { const Icon = nav.find(item => item[0] === label)?.[1] ?? LayoutDashboard; return <button key={label} type="button" className={active === label ? "mobile-tab active" : "mobile-tab"} onClick={() => {setActive(label);setNotificationFocus(false);}}><Icon size={19}/><span>{label === "Tasks & Projects" ? "Tasks" : label === "Content Calendar" ? "Content" : label === "Announcements" ? "Updates" : label}</span></button>; })}</nav>
     </section>
   </main>;
 }
