@@ -14,6 +14,6 @@ export default function StaffScoreboard({userId}:{userId:string;role?:string}){
  {error&&<p className="task-alert error">{error}</p>}
  {mine&&<div className="my-score"><span>Your current position</span><b>{canSeeTeam?"#"+mine.rank+" · ":""}{mine.score}/100</b><small>{mine.completed_tasks}/{mine.assigned_tasks} tasks completed</small></div>}
  {loading?<p className="content-footnote">Loading performance score…</p>:visibleRows.length===0?<p className="content-footnote">No score data available yet.</p>:<div className="score-list">{visibleRows.map(r=><article key={r.user_id} className={r.user_id===userId?"score-row mine":"score-row"}>{canSeeTeam&&<span className="score-rank">{r.rank<=3?<Medal size={17}/>:("#"+r.rank)}</span>}<div className="score-person"><b>{r.full_name}</b><small>{r.role.replaceAll("_"," ")} · {r.completed_tasks}/{r.assigned_tasks} tasks · {r.attendance_days} attendance days</small></div><strong>{r.score}<small>/100</small></strong></article>)}</div>}
- <p className="content-footnote">Score: task completion 50%, on-time completion 20%, attendance 20%, daily reports 10%. Current month-to-date. Individual staff can view only their own score; CEO can view the full team.</p>
+ <p className="content-footnote">Score: task completion 50%, on-time completion 20%, attendance 20%, daily reports 10%. Current month-to-date. All staff dashboards show the full team scoreboard for transparent monthly performance.</p>
  </section>;
 }
