@@ -406,3 +406,6 @@
   button,.nav-item,.module,.primary-action,.secondary-action{touch-action:manipulation}
 }
 @media(min-width:761px){.mobile-tabbar{display:none}}
+
+.login-logo{display:block;width:min(100%,300px);height:auto;max-height:90px;object-fit:contain;object-position:left center}.login-brand{min-height:80px}
+@media(max-width:480px){.login-card{padding:25px 21px}.login-logo{width:min(100%,270px)}}
