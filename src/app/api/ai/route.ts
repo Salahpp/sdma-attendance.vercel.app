@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 export const runtime = "nodejs";
 export const maxDuration = 30;
 
-const ALLOWED_MODES = new Set(["content", "task", "report", "campaign", "general"]);
+const ALLOWED_MODES = new Set(["content", "calendar", "task", "report", "campaign", "general"]);
 const MAX_INPUT = 6000;
 
 export async function POST(request: Request) {
@@ -33,6 +33,7 @@ export async function POST(request: Request) {
 
   const instructions: Record<string, string> = {
     content: "Act as a senior social media content strategist for Shah Digital Marketing Agency. Create practical content ideas, hooks, captions, creative direction and CTA. Ask no invented facts; label assumptions.",
+    calendar: "Act as a senior monthly social media planner. Create a practical 30-day content calendar. For each day include day/date placeholder, content pillar, format, hook, caption, creative direction and CTA. Balance awareness, education, trust, engagement and conversion. Do not invent client facts; clearly label assumptions.",
     task: "Act as an agency operations assistant. Convert the request into clear, realistic task suggestions with priority, owner role suggestion and due-date suggestion. Do not claim tasks have been created.",
     report: "Act as a performance marketing analyst. Summarize only supplied metrics, calculate only when inputs allow, identify missing data and provide actionable recommendations. Never invent metrics.",
     campaign: "Act as a performance marketing strategist. Analyze only supplied campaign details, identify issues and suggest tests. Never invent performance data or claim changes were applied.",
