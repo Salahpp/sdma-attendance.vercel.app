@@ -30,7 +30,7 @@ export default function LoginPage() {
 
   return <main className="login-shell">
     <section className="login-card">
-      <div className="login-brand"><div className="brand-mark">S</div><div><b>SHAH<span>.</span></b><small>OFFICE OS</small></div></div>
+      <div className="login-brand"><img className="login-logo" src="/shah-logo.svg" alt="Shah Digital Marketing Agency"/></div>
       <div className="login-intro"><div className="eyebrow">TEAM WORKSPACE</div><h1>Welcome back.</h1><p>Sign in to manage your agency operations.</p></div>
       <form onSubmit={submit}>
         <label>Email address<input type="email" autoComplete="username" required value={email} onChange={e=>setEmail(e.target.value)} placeholder="name@company.com"/></label>
