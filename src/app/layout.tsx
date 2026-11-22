@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   applicationName: "SDMA Office OS",
   robots: { index: false, follow: false },
   manifest: "/manifest.webmanifest",
-  appleWebApp: { capable: true, statusBarStyle: "default", title: "SDMA Office OS" },
+  appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "SDMA Office OS" },
   icons: { icon: "/icon.svg", apple: "/icon.svg" }
 };
 
