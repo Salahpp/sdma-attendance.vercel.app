@@ -13,6 +13,7 @@ import FinancePanel from "./finance-panel";
 import AnnouncementsPanel from "./announcements-panel";
 import ReportsPanel from "./reports-panel";
 import AiEnginePanel from "./ai-engine-panel";
+import SettingsPanel from "./settings-panel";
 import AgencyOverview from "./agency-overview";
 import { visibleModules, type SdmaRole } from "@/lib/auth/roles";
 import {
@@ -60,7 +61,7 @@ export default function Dashboard({ fullName, role, userId }: { fullName: string
       <div className="workspace"><span className="workspace-icon">SD</span><div><b>Shah Digital</b><small>Agency workspace</small></div><ChevronDown size={15}/></div>
       <div className="nav-caption">WORKSPACE</div>
       <nav>{visibleNav.map(([label, Icon]) => <button key={label} onClick={() => {setActive(label);setOpen(false);if(label === "Announcements") setNotificationFocus(false);}} className={active === label ? "nav-item selected" : "nav-item"}><Icon size={18}/><span>{label}</span></button>)}</nav>
-      <div className="sidebar-bottom"><button className="nav-item"><Settings size={18}/>Settings</button><button className="nav-item"><CircleHelp size={18}/>Help & Support</button><div className="user-chip"><div className="avatar">{initials(fullName)}</div><div><b>{fullName}</b><small>{roleLabel}</small></div><ChevronDown size={15}/></div></div>
+      <div className="sidebar-bottom"><button className={active === "Settings" ? "nav-item selected" : "nav-item"} onClick={() => {setActive("Settings");setOpen(false);}}><Settings size={18}/>Settings</button><button className={active === "Help & Support" ? "nav-item selected" : "nav-item"} onClick={() => {setActive("Help & Support");setOpen(false);}}><CircleHelp size={18}/>Help & Support</button><div className="user-chip"><div className="avatar">{initials(fullName)}</div><div><b>{fullName}</b><small>{roleLabel}</small></div><ChevronDown size={15}/></div></div>
     </aside>
     {open && <button className="scrim" onClick={() => setOpen(false)} aria-label="Close navigation"/>}
     <section className="main">
@@ -78,6 +79,8 @@ export default function Dashboard({ fullName, role, userId }: { fullName: string
           : active === "Finance & Payroll" ? <FinancePanel role={role} userId={userId} />
           : active === "Reports & Documents" ? <ReportsPanel />
           : active === "AI Engine" ? <AiEnginePanel />
+          : active === "Settings" ? <SettingsPanel fullName={fullName} role={role} userId={userId} />
+          : active === "Help & Support" ? <SettingsPanel fullName={fullName} role={role} userId={userId} />
           : active === "Announcements" ? <AnnouncementsPanel role={role} userId={userId} defaultTab={notificationFocus ? "notifications" : "announcements"} />
           : active === "Overview" ? <>
             <AgencyOverview role={role} userId={userId} onOpenAttendance={() => setActive("Attendance")} />
