@@ -442,3 +442,76 @@
  .score-person small{line-height:1.4}
  .score-row>strong{font-size:15px;flex-shrink:0}
 }
+
+
+/* Phase 2 — Client CRM and Project Management */
+.phase2-summary{grid-template-columns:repeat(4,minmax(0,1fr))}
+.phase2-summary>div{min-width:0}
+.phase2-summary small{font-size:10px;color:#9699a1}
+.phase2-summary .metric-danger{color:#c51d24}
+.crm-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.crm-search{display:flex;align-items:center;gap:9px;min-width:min(100%,280px);flex:1;max-width:520px;padding:0 12px;height:42px;border:1px solid #e7e8eb;border-radius:10px;background:#fff;color:#858993}
+.crm-search input{width:100%;min-width:0;border:0;outline:0;background:transparent;font:inherit;font-size:12px;color:#222}
+.crm-filters{display:flex;align-items:center;gap:5px;padding:4px;background:#f0f1f3;border-radius:10px}
+.crm-filters button{border:0;border-radius:7px;background:transparent;color:#777;font-size:11px;padding:7px 11px}
+.crm-filters button.active{background:#fff;color:#b51e24;box-shadow:0 1px 3px #11111112;font-weight:700}
+.crm-editor,.project-editor{margin:0 0 14px}
+.crm-editor .task-form-grid,.project-editor .task-form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.crm-notes-field{grid-column:1/-1}
+.crm-notes-field textarea{width:100%;border:1px solid #e5e5e5;border-radius:9px;padding:10px;font:inherit;font-size:12px;resize:vertical}
+.phase2-client-list{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+.phase2-client-card{min-width:0;gap:12px}
+.phase2-client-card.expanded{grid-column:1/-1}
+.phase2-client-stats{display:flex;gap:14px;flex-wrap:wrap;color:#777;font-size:10px}
+.phase2-client-stats span,.phase2-project-meta span,.phase2-project-footer>span{display:inline-flex;align-items:center;gap:5px}
+.phase2-client-actions{display:flex;gap:8px;flex-wrap:wrap}
+.phase2-client-actions button{display:inline-flex;align-items:center;gap:6px}
+.phase2-client-detail{display:grid;gap:14px;padding-top:14px;border-top:1px solid #eceef1}
+.crm-account-notes{padding:11px 13px;border-radius:10px;background:#f8f8f9}
+.crm-account-notes b{font-size:11px;color:#555}
+.crm-account-notes p{margin:5px 0 0;font-size:12px;line-height:1.6;color:#777;white-space:pre-wrap}
+.crm-inline-status{display:flex;align-items:end;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.crm-inline-status label{display:grid;gap:5px;font-size:10px;color:#777}
+.crm-inline-status select,.phase2-project-actions select{border:1px solid #e5e6e9;border-radius:8px;background:#fff;padding:8px 10px;color:#444;font:inherit;font-size:11px}
+.phase2-project-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.phase2-project-heading h3{margin:0;font-size:14px;color:#252525}
+.phase2-project-heading p{margin:4px 0 0;font-size:10px;color:#92959d}
+.phase2-project-heading>span{font-size:10px;color:#888}
+.phase2-project-list{display:grid;gap:10px}
+.phase2-project-card{display:grid;gap:10px;padding:13px;border:1px solid #eceef1;border-radius:11px;background:#fff;min-width:0}
+.phase2-project-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.phase2-project-top>div{display:grid;gap:4px;min-width:0}
+.phase2-project-top b{font-size:12px;color:#292929}
+.phase2-project-top small{font-size:10px;color:#8a8d95;line-height:1.5}
+.project-status{display:inline-flex;align-items:center;gap:4px;flex-shrink:0;padding:5px 8px;border-radius:20px;background:#eef4ff;color:#3b6495;font-size:9px;font-weight:700;text-transform:capitalize}
+.project-status.complete{background:#eaf7ed;color:#28743d}
+.project-status.overdue{background:#fff0f0;color:#bd2028}
+.phase2-project-meta{display:flex;gap:12px;flex-wrap:wrap;color:#777;font-size:10px}
+.phase2-project-progress{height:6px;border-radius:99px;background:#f0f1f3;overflow:hidden}
+.phase2-project-progress i{display:block;height:100%;border-radius:inherit;background:#e31e24}
+.phase2-project-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.phase2-project-footer>span{font-size:10px;color:#777;min-width:0}
+.phase2-project-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.phase2-project-actions .secondary-action{padding:7px 9px;font-size:10px}
+.crm-created-date{font-size:10px;color:#9a9da5}
+.compact-empty{padding:15px;font-size:11px}
+@media(max-width:760px){
+ .phase2-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .phase2-client-list{grid-template-columns:1fr}
+ .phase2-client-card.expanded{grid-column:auto}
+ .crm-toolbar{align-items:stretch}
+ .crm-search{max-width:none}
+ .crm-filters{width:100%;justify-content:space-between}
+ .crm-filters button{flex:1;padding:8px 5px}
+ .phase2-project-top{align-items:flex-start}
+ .phase2-project-footer{align-items:flex-start}
+ .phase2-project-actions{width:100%}
+ .phase2-project-actions select{flex:1;min-width:0}
+}
+@media(max-width:460px){
+ .crm-editor .task-form-grid,.project-editor .task-form-grid{grid-template-columns:1fr}
+ .crm-notes-field{grid-column:auto}
+ .phase2-summary>div{padding:12px}
+ .phase2-summary b{font-size:20px}
+ .phase2-project-meta{display:grid;gap:6px}
+}
