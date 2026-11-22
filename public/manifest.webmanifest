@@ -1,11 +1,18 @@
 {
-  "name": "SDMA Office OS",
-  "short_name": "SDMA OS",
-  "description": "Shah Digital Marketing Agency operations platform",
+  "name": "Shah Digital Marketing Agency",
+  "short_name": "SHAH",
+  "description": "Shah Digital Marketing Agency Office OS",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f7f8fa",
-  "theme_color": "#111111",
+  "background_color": "#050505",
+  "theme_color": "#050505",
   "orientation": "portrait",
-  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
 }
