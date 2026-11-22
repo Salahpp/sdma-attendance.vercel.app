@@ -60,10 +60,27 @@ export async function POST(request: Request) {
     );
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
-      return NextResponse.json({ error: response.status === 429
-        ? "Free-tier request limit reached. Please try again later."
-        : "AI provider request failed. Check the Gemini API configuration.",
-        code: response.status === 429 ? "RATE_LIMIT" : "PROVIDER_ERROR" }, { status: response.status === 429 ? 429 : 502 });
+      // Keep provider diagnostics server-side; never return raw provider payloads or secrets.
+      const providerMessage = typeof data?.error?.message === "string" ? data.error.message : "";
+      const status = response.status;
+      const failure = status === 429
+        ? { error: "Gemini request limit reached. Please wait and try again.", code: "RATE_LIMIT", httpStatus: 429 }
+        : status === 400
+          ? { error: "Gemini rejected the request. Check the configured model and API settings.", code: "GEMINI_BAD_REQUEST", httpStatus: 502 }
+          : status === 401 || status === 403
+            ? { error: "Gemini API authentication or permission failed. Verify the API key and its restrictions in Google AI Studio.", code: "GEMINI_AUTH_ERROR", httpStatus: 502 }
+            : status === 404
+              ? { error: "The configured Gemini model was not found. Check GEMINI_MODEL.", code: "GEMINI_MODEL_NOT_FOUND", httpStatus: 502 }
+              : status >= 500
+                ? { error: "Gemini is temporarily unavailable. Please try again shortly.", code: "GEMINI_UNAVAILABLE", httpStatus: 502 }
+                : { error: "Gemini could not process this request. Please review the prompt and try again.", code: "GEMINI_PROVIDER_ERROR", httpStatus: 502 };
+      console.error("[AI Engine] Gemini request failed", {
+        status,
+        model,
+        mode,
+        providerMessage: providerMessage.slice(0, 300)
+      });
+      return NextResponse.json({ error: failure.error, code: failure.code }, { status: failure.httpStatus });
     }
     const text = data?.candidates?.[0]?.content?.parts?.map((part: { text?: string }) => part.text || "").join("").trim();
     if (!text) return NextResponse.json({ error: "The AI provider returned an empty response." }, { status: 502 });
