@@ -30,7 +30,7 @@ export default function LoginPage() {
 
   return <main className="login-shell">
     <section className="login-card">
-      <div className="login-brand"><img className="login-logo" src="/shah-logo.svg" alt="Shah Digital Marketing Agency"/></div>
+      <div className="login-brand"><svg viewBox="0 0 1200 430" role="img" aria-label="Shah Digital Marketing Agency" xmlns="http://www.w3.org/2000/svg"><rect width="1200" height="430" rx="8" fill="#050505"/><g fontFamily="Arial, Helvetica, sans-serif" fontWeight="900"><text x="35" y="220" fontSize="250" letterSpacing="-15" fill="#fff">SHAH</text><circle cx="1120" cy="105" r="42" fill="#e31e24"/><text x="40" y="300" fontSize="66" letterSpacing="21" fill="#fff">DIGITAL MARKETING</text><path d="M40 365H145 M1055 365H1160" stroke="#e31e24" strokeWidth="8"/><text x="175" y="390" fontSize="60" letterSpacing="3" fill="#e31e24">AGENCY &amp; ACADEMY</text></g></svg></div>
       <div className="login-intro"><div className="eyebrow">TEAM WORKSPACE</div><h1>Welcome back.</h1><p>Sign in to manage your agency operations.</p></div>
       <form onSubmit={submit}>
         <label>Email address<input type="email" autoComplete="username" required value={email} onChange={e=>setEmail(e.target.value)} placeholder="name@company.com"/></label>
