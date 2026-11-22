@@ -409,3 +409,12 @@
 
 .login-logo{display:block;width:min(100%,300px);height:auto;max-height:90px;object-fit:contain;object-position:left center}.login-brand{min-height:80px}
 @media(max-width:480px){.login-card{padding:25px 21px}.login-logo{width:min(100%,270px)}}
+
+
+/* Clean single-logo treatment: no white card, shadow, or duplicate wordmark */
+.brand{align-items:center;gap:0;padding:0 8px 27px}
+.brand>svg{display:block;width:100%;height:auto;max-height:112px;object-fit:contain;border:0;border-radius:0;background:transparent;box-shadow:none;padding:0}
+.login-brand{display:block;margin:0 0 42px;padding:0;background:transparent;border:0;box-shadow:none}
+.login-brand>svg{display:block;width:100%;height:auto;max-height:132px;border:0;border-radius:0;background:transparent;box-shadow:none;padding:0}
+.login-logo{display:none}
+@media(max-width:760px){.sidebar .brand{padding:0 8px 22px;min-height:0}.sidebar .brand>svg{max-height:105px}}
