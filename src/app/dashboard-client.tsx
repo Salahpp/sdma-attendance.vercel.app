@@ -28,6 +28,8 @@ const nav = [
 ] as const;
 
 const mobilePrimary = ["Overview", "Tasks & Projects", "Attendance", "Content Calendar", "Announcements"] as const;
+const greeting = () => { const hour = Number(new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", hour: "2-digit", hourCycle: "h23" }).format(new Date())); return hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening"; };
+const initials = (name: string) => name.trim().split(/\\s+/).slice(0, 2).map(part => part[0]?.toUpperCase() || "").join("") || "SD";
 
 const modules = [
   ["Tasks & Projects", "Assign, track and review work", ClipboardList, "red"],
@@ -54,13 +56,13 @@ export default function Dashboard({ fullName, role, userId }: { fullName: string
       <div className="workspace"><span className="workspace-icon">SD</span><div><b>Shah Digital</b><small>Agency workspace</small></div><ChevronDown size={15}/></div>
       <div className="nav-caption">WORKSPACE</div>
       <nav>{visibleNav.map(([label, Icon]) => <button key={label} onClick={() => {setActive(label);setOpen(false);if(label === "Announcements") setNotificationFocus(false);}} className={active === label ? "nav-item selected" : "nav-item"}><Icon size={18}/><span>{label}</span></button>)}</nav>
-      <div className="sidebar-bottom"><button className="nav-item"><Settings size={18}/>Settings</button><button className="nav-item"><CircleHelp size={18}/>Help & Support</button><div className="user-chip"><div className="avatar">SP</div><div><b>{fullName}</b><small>{roleLabel}</small></div><ChevronDown size={15}/></div></div>
+      <div className="sidebar-bottom"><button className="nav-item"><Settings size={18}/>Settings</button><button className="nav-item"><CircleHelp size={18}/>Help & Support</button><div className="user-chip"><div className="avatar">{initials(fullName)}</div><div><b>{fullName}</b><small>{roleLabel}</small></div><ChevronDown size={15}/></div></div>
     </aside>
     {open && <button className="scrim" onClick={() => setOpen(false)} aria-label="Close navigation"/>}
     <section className="main">
-      <header className="topbar"><div className="crumb"><button className="menu-button" onClick={() => setOpen(true)} aria-label="Open menu"><Menu size={20}/></button>Workspace <span>/</span> <b>{active}</b></div><div className="top-actions"><label className="search"><Search size={16}/><input placeholder="Search anything..."/></label><button className="icon-btn" aria-label="Notifications" onClick={() => {setActive("Announcements");setNotificationFocus(true);}}><Bell size={19}/><i/></button><div className="top-avatar">SP</div></div></header>
+      <header className="topbar"><div className="crumb"><button className="menu-button" onClick={() => setOpen(true)} aria-label="Open menu"><Menu size={20}/></button>Workspace <span>/</span> <b>{active}</b></div><div className="top-actions"><label className="search"><Search size={16}/><input placeholder="Search anything..."/></label><button className="icon-btn" aria-label="Notifications" onClick={() => {setActive("Announcements");setNotificationFocus(true);}}><Bell size={19}/><i/></button><div className="top-avatar">{initials(fullName)}</div></div></header>
       <div className="page">
-        <div className="welcome"><div><div className="eyebrow">SHAH DIGITAL MARKETING AGENCY</div><h1>Good morning, {fullName.split(" ")[0]} <span>✦</span></h1><p>Your agency operations, all in one place.</p></div><div className="date-pill">{new Date().toLocaleDateString("en-IN",{weekday:"short",day:"2-digit",month:"short",year:"numeric"})}</div></div>
+        <div className="welcome"><div><div className="eyebrow">SHAH DIGITAL MARKETING AGENCY</div><h1>{greeting()}, {fullName.split(" ")[0]} <span>✦</span></h1><p>Your agency operations, all in one place.</p></div><div className="date-pill">{new Date().toLocaleDateString("en-IN",{weekday:"short",day:"2-digit",month:"short",year:"numeric"})}</div></div>
         {active === "Tasks & Projects" ? <TasksPanel role={role} userId={userId} />
           : active === "Team & Roles" ? <StaffPanel role={role} userId={userId} />
           : active === "Attendance" ? <AttendancePanel userId={userId} role={role} />
