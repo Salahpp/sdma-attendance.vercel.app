@@ -11,6 +11,7 @@ import ContentCalendarPanel from "./content-calendar-panel";
 import AdsLeadsPanel from "./ads-leads-panel";
 import FinancePanel from "./finance-panel";
 import AnnouncementsPanel from "./announcements-panel";
+import ReportsPanel from "./reports-panel";
 import AgencyOverview from "./agency-overview";
 import { visibleModules, type SdmaRole } from "@/lib/auth/roles";
 import {
@@ -24,7 +25,7 @@ const nav = [
   ["Clients & CRM", Users], ["Content Calendar", CalendarDays],
   ["Ads & Leads", Megaphone], ["Attendance", Clock3],
   ["Daily Reports", FileBarChart2], ["Leave Management", CalendarDays], ["Team & Roles", ShieldCheck],
-  ["Finance & Payroll", Wallet], ["Announcements", MessageSquareText]
+  ["Finance & Payroll", Wallet], ["Reports & Documents", FileBarChart2], ["Announcements", MessageSquareText]
 ] as const;
 
 const mobilePrimary = ["Overview", "Tasks & Projects", "Attendance", "Content Calendar", "Announcements"] as const;
@@ -37,6 +38,7 @@ const modules = [
   ["Content Calendar", "Plan, approve and publish content", CalendarDays, "purple"],
   ["Ads & Leads", "Campaign performance and lead flow", Megaphone, "orange"],
   ["Finance & Payroll", "Expenses, approvals and salary records", Wallet, "green"],
+  ["Reports & Documents", "Client performance summaries and PDF export", FileBarChart2, "slate"],
   ["Attendance", "Selfie, GPS and work hours", Clock3, "green"],
   ["Daily Reports", "Morning and evening updates", FileBarChart2, "slate"],
   ["Leave Management", "Apply and review leave requests", CalendarDays, "green"],
@@ -72,6 +74,7 @@ export default function Dashboard({ fullName, role, userId }: { fullName: string
           : active === "Content Calendar" ? <ContentCalendarPanel role={role} userId={userId} />
           : active === "Ads & Leads" ? <AdsLeadsPanel role={role} userId={userId} />
           : active === "Finance & Payroll" ? <FinancePanel role={role} userId={userId} />
+          : active === "Reports & Documents" ? <ReportsPanel />
           : active === "Announcements" ? <AnnouncementsPanel role={role} userId={userId} defaultTab={notificationFocus ? "notifications" : "announcements"} />
           : active === "Overview" ? <>
             <AgencyOverview role={role} userId={userId} onOpenAttendance={() => setActive("Attendance")} />
