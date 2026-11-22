@@ -1,0 +1,75 @@
+import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+
+export const runtime = "nodejs";
+export const maxDuration = 30;
+
+const ALLOWED_MODES = new Set(["content", "task", "report", "campaign", "general"]);
+const MAX_INPUT = 6000;
+
+export async function POST(request: Request) {
+  const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+
+  const { data: profile } = await supabase.from("profiles").select("role,is_active").eq("id", user.id).maybeSingle();
+  if (!profile?.is_active) return NextResponse.json({ error: "Active agency account required." }, { status: 403 });
+
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return NextResponse.json({
+    error: "AI engine is configured but not connected. Add GEMINI_API_KEY in Vercel Environment Variables.",
+    code: "AI_KEY_MISSING"
+  }, { status: 503 });
+
+  let body: { mode?: string; prompt?: string };
+  try { body = await request.json(); } catch {
+    return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
+  }
+
+  const mode = String(body.mode || "general");
+  const prompt = typeof body.prompt === "string" ? body.prompt.trim() : "";
+  if (!ALLOWED_MODES.has(mode)) return NextResponse.json({ error: "Unsupported AI mode." }, { status: 400 });
+  if (!prompt || prompt.length > MAX_INPUT) return NextResponse.json({ error: "Enter a prompt up to 6,000 characters." }, { status: 400 });
+
+  const instructions: Record<string, string> = {
+    content: "Act as a senior social media content strategist for Shah Digital Marketing Agency. Create practical content ideas, hooks, captions, creative direction and CTA. Ask no invented facts; label assumptions.",
+    task: "Act as an agency operations assistant. Convert the request into clear, realistic task suggestions with priority, owner role suggestion and due-date suggestion. Do not claim tasks have been created.",
+    report: "Act as a performance marketing analyst. Summarize only supplied metrics, calculate only when inputs allow, identify missing data and provide actionable recommendations. Never invent metrics.",
+    campaign: "Act as a performance marketing strategist. Analyze only supplied campaign details, identify issues and suggest tests. Never invent performance data or claim changes were applied.",
+    general: "Act as a careful internal assistant for a digital marketing agency. Be concise, practical and transparent about uncertainty."
+  };
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 25000);
+  try {
+    const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: instructions[mode] }] },
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.4, maxOutputTokens: 1200 }
+        }),
+        signal: controller.signal,
+        cache: "no-store"
+      }
+    );
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      return NextResponse.json({ error: response.status === 429
+        ? "Free-tier request limit reached. Please try again later."
+        : "AI provider request failed. Check the Gemini API configuration.",
+        code: response.status === 429 ? "RATE_LIMIT" : "PROVIDER_ERROR" }, { status: response.status === 429 ? 429 : 502 });
+    }
+    const text = data?.candidates?.[0]?.content?.parts?.map((part: { text?: string }) => part.text || "").join("").trim();
+    if (!text) return NextResponse.json({ error: "The AI provider returned an empty response." }, { status: 502 });
+    return NextResponse.json({ text, model, mode });
+  } catch {
+    return NextResponse.json({ error: "AI request timed out or could not connect." }, { status: 502 });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
