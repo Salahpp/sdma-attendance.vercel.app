@@ -22,7 +22,7 @@ const suggestions: Record<(typeof modes)[number]["id"], string> = {
   general: "Help me plan today's priorities as the founder of a digital marketing agency."
 };
 
-export default function AiEnginePanel({ userId }: { userId: string }) {\n  const supabase = useMemo(() => createClient(), []);\n  const [clients, setClients] = useState<{id:string;name:string}[]>([]);\n  const [clientId, setClientId] = useState("");\n  const [savedMessage, setSavedMessage] = useState("");\n  useEffect(() => { void supabase.from("clients").select("id,name").order("name").then(({data}) => setClients(data || [])); }, [supabase]);
+export default function AiEnginePanel({ userId }: { userId: string }) {\n  const supabase = useMemo(() => createClient(), []);\n  const [clients, setClients] = useState<{id:string;name:string}[]>([]);\n  const [clientId, setClientId] = useState("");\n  const [savedMessage, setSavedMessage] = useState("");\n  useEffect(() => { void supabase.rpc("sdma_list_content_clients").then(({data,error}) => { if (!error) setClients(data || []); }); }, [supabase]);
   const [mode, setMode] = useState<(typeof modes)[number]["id"]>("content");
   const [prompt, setPrompt] = useState("");
   const [result, setResult] = useState("");
