@@ -418,3 +418,27 @@
 .login-brand>svg{display:block;width:100%;height:auto;max-height:132px;border:0;border-radius:0;background:transparent;box-shadow:none;padding:0}
 .login-logo{display:none}
 @media(max-width:760px){.sidebar .brand{padding:0 8px 22px;min-height:0}.sidebar .brand>svg{max-height:105px}}
+
+
+/* Phase 1: staff dashboard, punch card and scoreboard polish */
+.score-progress{display:block;height:5px;width:100%;margin-top:3px;border-radius:99px;background:#f0f1f3;overflow:hidden}
+.score-progress i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#e31e24,#f26b70)}
+.score-rank.top-rank{color:#d39a22}
+.score-row.mine .score-person b{color:#a71920}
+.staff-scoreboard .secondary-action:disabled{opacity:.6;cursor:wait}
+.attendance-quick-card .primary-action:disabled{opacity:.55;cursor:not-allowed}
+.attendance-quick-retry{display:inline-flex;align-items:center;gap:5px;border:0;background:transparent;color:#a51d22;font-size:11px;padding:5px}
+@media(max-width:620px){
+ .attendance-quick-card{display:grid;grid-template-columns:42px minmax(0,1fr);gap:10px;padding:13px}
+ .quick-attendance-copy{min-width:0}
+ .quick-attendance-copy strong{font-size:18px}
+ .attendance-quick-card .primary-action{grid-column:1/-1;min-height:44px}
+ .attendance-quick-retry{grid-column:1/-1;justify-self:start}
+ .staff-scoreboard{padding:14px}
+ .staff-scoreboard .panel-head{align-items:flex-start}
+ .staff-scoreboard .panel-head h3{font-size:13px}
+ .score-row{gap:8px;padding:10px}
+ .score-rank{width:22px;flex-shrink:0}
+ .score-person small{line-height:1.4}
+ .score-row>strong{font-size:15px;flex-shrink:0}
+}
