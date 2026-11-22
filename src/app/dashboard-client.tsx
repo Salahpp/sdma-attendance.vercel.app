@@ -29,7 +29,7 @@ const nav = [
 
 const mobilePrimary = ["Overview", "Tasks & Projects", "Attendance", "Content Calendar", "Announcements"] as const;
 const greeting = () => { const hour = Number(new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", hour: "2-digit", hourCycle: "h23" }).format(new Date())); return hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening"; };
-const initials = (name: string) => name.trim().split(/\\s+/).slice(0, 2).map(part => part[0]?.toUpperCase() || "").join("") || "SD";
+const initials = (name: string) => name.trim().split(/\s+/).slice(0, 2).map(part => part[0]?.toUpperCase() || "").join("") || "SD";
 
 const modules = [
   ["Tasks & Projects", "Assign, track and review work", ClipboardList, "red"],
