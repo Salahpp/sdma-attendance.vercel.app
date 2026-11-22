@@ -78,7 +78,7 @@ export default function Dashboard({ fullName, role, userId }: { fullName: string
           : active === "Ads & Leads" ? <AdsLeadsPanel role={role} userId={userId} />
           : active === "Finance & Payroll" ? <FinancePanel role={role} userId={userId} />
           : active === "Reports & Documents" ? <ReportsPanel />
-          : active === "AI Engine" ? <AiEnginePanel />
+          : active === "AI Engine" ? <AiEnginePanel userId={userId} />
           : active === "Settings" ? <SettingsPanel fullName={fullName} role={role} userId={userId} />
           : active === "Help & Support" ? <SettingsPanel fullName={fullName} role={role} userId={userId} />
           : active === "Announcements" ? <AnnouncementsPanel role={role} userId={userId} defaultTab={notificationFocus ? "notifications" : "announcements"} />
