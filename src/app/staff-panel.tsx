@@ -29,7 +29,7 @@ export default function StaffPanel({ role, userId }: { role: string; userId: str
 
   const load = useCallback(async () => {
     setLoading(true); setError("");
-    const {data,error} = await supabase.from("profiles").select("id,full_name,email,phone,job_title,department,role,is_active,hourly_rate").order("full_name");
+    const {data,error} = await (supabase as any).from("profiles").select("id,full_name,email,phone,job_title,department,role,is_active,hourly_rate").order("full_name");
     if (error) setError(error.message); else setMembers((data ?? []) as Member[]);
     setLoading(false);
   },[supabase]);
@@ -89,7 +89,7 @@ export default function StaffPanel({ role, userId }: { role: string; userId: str
       is_active: form.get("is_active") === "on",
       hourly_rate: Math.max(0, Number(form.get("hourly_rate") || 0))
     };
-    const {error} = await supabase.from("profiles").update(payload).eq("id",member.id);
+    const {error} = await (supabase as any).from("profiles").update(payload).eq("id",member.id);
     if (error) setError(error.message);
     else { setNotice("Staff profile updated."); await load(); }
     setSaving(null);
