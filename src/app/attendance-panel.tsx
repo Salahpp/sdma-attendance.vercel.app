@@ -107,25 +107,58 @@ export default function AttendancePanel({userId,role}:{userId:string;role:string
 
   async function punch() {
     if(!photo){setError("Please capture a fresh selfie first.");return;}
+    if(busy)return;
     setBusy(true);setError("");setMessage("");
+    let stage="GPS location";
+    let uploadedPath:string|null=null;
     try {
-      const position=await new Promise<GeolocationPosition>((resolve,reject)=>{
-        if(!navigator.geolocation){reject(new Error("Location access is not supported on this device."));return;}
-        navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:true,timeout:20000,maximumAge:0});
+      const getPosition=(highAccuracy:boolean,timeout:number)=>new Promise<GeolocationPosition>((resolve,reject)=>{
+        if(!navigator.geolocation){reject(new Error("Location access is not supported. Enable Location Services for Safari."));return;}
+        navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:highAccuracy,timeout,maximumAge:0});
       });
+      let position:GeolocationPosition;
+      try {
+        position=await getPosition(true,20000);
+      } catch(firstError) {
+        const geoError=firstError as GeolocationPositionError;
+        if(geoError?.code===1) throw new Error("Location permission denied. iPhone Settings → Privacy & Security → Location Services → Safari Websites → While Using the App, and enable Precise Location.");
+        if(geoError?.code===2 || geoError?.code===3) {
+          setMessage("Precise GPS is taking longer. Trying standard GPS…");
+          try { position=await getPosition(false,15000); }
+          catch(secondError) {
+            const fallback=secondError as GeolocationPositionError;
+            if(fallback?.code===1) throw new Error("Location permission denied. Allow location access for this website in Safari settings.");
+            if(fallback?.code===3) throw new Error("Could not get GPS location in time. Move near a window or outdoors, enable Precise Location, then retry.");
+            throw new Error("Your iPhone could not determine its location. Check Location Services and try again.");
+          }
+        } else throw firstError;
+      }
+      if(!Number.isFinite(position.coords.latitude)||!Number.isFinite(position.coords.longitude)) throw new Error("GPS returned invalid coordinates. Please retry.");
       const isCheckIn=!record?.check_in;
       const action=isCheckIn?"check-in":"check-out";
       const path=userId+"/"+officeDate()+"/"+action+"-"+crypto.randomUUID()+".jpg";
+      stage="Selfie upload";
+      setMessage("GPS verified. Uploading selfie…");
       const {error:uploadError}=await supabase.storage.from("attendance-selfies").upload(path,photo,{contentType:"image/jpeg",upsert:false});
-      if(uploadError) throw uploadError;
+      if(uploadError) throw new Error("Selfie upload failed: "+uploadError.message);
+      uploadedPath=path;
+      stage="Attendance save";
+      setMessage("Selfie uploaded. Saving attendance…");
       const args={p_lat:position.coords.latitude,p_lng:position.coords.longitude,p_selfie_path:path,p_note:note.trim()||null};
       const rpcResult=isCheckIn?await supabase.rpc("attendance_check_in",args):await supabase.rpc("attendance_check_out",args);
-      if(rpcResult.error) throw rpcResult.error;
+      if(rpcResult.error) throw new Error("Attendance database save failed: "+rpcResult.error.message);
       setPhoto(null);setPhotoUrl("");setNote("");
       setMessage(isCheckIn?"Check-in recorded successfully.":"Check-out recorded successfully.");
+      uploadedPath=null;
       await load();
     } catch(e) {
-      setError(e instanceof Error?e.message:"Attendance punch failed. Please try again.");
+      if(uploadedPath) {
+        const {error:cleanupError}=await supabase.storage.from("attendance-selfies").remove([uploadedPath]);
+        if(cleanupError) console.warn("Could not clean up unused attendance selfie:",cleanupError.message);
+      }
+      const detail=e instanceof Error?e.message:"Unknown error";
+      console.error("SDMA attendance punch failed at "+stage+":",e);
+      setError(stage+": "+detail);
     } finally {setBusy(false);}
   }
 
