@@ -12,7 +12,7 @@ const today = () => new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata"}).f
 const managers = ["ceo","operations_manager","team_lead","office_admin"];
 
 export default function DailyWorkPanel({role,userId}:{role:string;userId:string}) {
-  const db=useMemo(()=>createClient(),[]);
+  const db=useMemo(()=>createClient() as any,[]);
   const [tasks,setTasks]=useState<WorkTask[]>([]);
   const [people,setPeople]=useState<Person[]>([]);
   const [clients,setClients]=useState<Client[]>([]);
