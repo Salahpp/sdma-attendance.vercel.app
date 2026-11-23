@@ -24,7 +24,7 @@ export default function FinancePanel({role,userId}:{role:string;userId:string}){
   const e=await supabase.from("expenses").select("*").order("expense_date",{ascending:false}).limit(300);
   if(e.error)setError(e.error.message);else setExpenses((e.data||[]) as Expense[]);
   if(canViewPayroll){
-   const [p,staff]=await Promise.all([supabase.from("payroll").select("*").order("month",{ascending:false}).limit(500),supabase.from("profiles").select("id,full_name,role,hourly_rate").eq("is_active",true).order("full_name")]);
+   const [p,staff]=await Promise.all([supabase.from("payroll").select("*").order("month",{ascending:false}).limit(500),(supabase as any).from("profiles").select("id,full_name,role,hourly_rate").eq("is_active",true).order("full_name")]);
    if(p.error)setError(p.error.message);else setPayroll((p.data||[]) as Payroll[]);
    if(staff.error)setError(staff.error.message);else setPeople((staff.data||[]) as Person[]);
   }
@@ -55,11 +55,11 @@ export default function FinancePanel({role,userId}:{role:string;userId:string}){
   const person=people.find(p=>p.id===personId);
   if(!person){setError("Selected staff profile was not found.");setSaving(false);return;}
   const start=month+"-01";const [yy,mm]=month.split("-").map(Number);const end=new Date(Date.UTC(yy,mm,1)).toISOString().slice(0,10);
-  const sessions=await supabase.from("attendance_sessions").select("check_in,check_out").eq("user_id",personId).gte("attendance_date",start).lt("attendance_date",end).not("check_out","is",null);
+  const sessions=await (supabase as any).from("attendance_sessions").select("check_in,check_out").eq("user_id",personId).gte("attendance_date",start).lt("attendance_date",end).not("check_out","is",null);
   if(sessions.error){setError(sessions.error.message);setSaving(false);return;}
   const totalHours=(sessions.data||[]).reduce((sum,row)=>sum+Math.max(0,(new Date(row.check_out!).getTime()-new Date(row.check_in).getTime())/3600000),0);
   const rate=Number(person.hourly_rate||0);const earnings=Math.round(totalHours*rate*100)/100;
-  const {error:e}=await supabase.from("payroll").insert({user_id:personId,month:start,base_salary:0,hourly_rate:rate,hours_worked:Math.round(totalHours*100)/100,hourly_earnings:earnings,allowances:Number(allowances),bonus:Number(bonus),deductions:Number(deductions),advance:Number(advance),paid_amount:0,payment_status:"pending",notes:notes||null});
+  const {error:e}=await (supabase as any).from("payroll").insert({user_id:personId,month:start,base_salary:0,hourly_rate:rate,hours_worked:Math.round(totalHours*100)/100,hourly_earnings:earnings,allowances:Number(allowances),bonus:Number(bonus),deductions:Number(deductions),advance:Number(advance),paid_amount:0,payment_status:"pending",notes:notes||null});
   if(e)setError(e.message);else{setSuccess("Payroll record created.");setShowPayroll(false);setBase("");setNotes("");await load()}setSaving(false);
  }
  async function reviewExpense(item:Expense,status:"approved"|"rejected"){
