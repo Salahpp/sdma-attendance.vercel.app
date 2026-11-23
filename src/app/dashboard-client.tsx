@@ -10,6 +10,7 @@ import LeavePanel from "./leave-panel";
 import ContentCalendarPanel from "./content-calendar-panel";
 import AdsLeadsPanel from "./ads-leads-panel";
 import FinancePanel from "./finance-panel";
+import AcademyPanel from "./academy-panel";
 import AnnouncementsPanel from "./announcements-panel";
 import ReportsPanel from "./reports-panel";
 import AiEnginePanel from "./ai-engine-panel";
@@ -17,7 +18,7 @@ import SettingsPanel from "./settings-panel";
 import AgencyOverview from "./agency-overview";
 import { visibleModules, type SdmaRole } from "@/lib/auth/roles";
 import {
-  Bell, CalendarDays, ChevronDown, CircleHelp,
+  Bell, CalendarDays, ChevronDown, CircleHelp, GraduationCap,
   ClipboardList, Clock3, FileBarChart2, LayoutDashboard, Menu, MessageSquareText,
   Search, Settings, ShieldCheck, Users, Wallet, X, Megaphone, Sparkles
 } from "lucide-react";
@@ -27,7 +28,7 @@ const nav = [
   ["Clients & CRM", Users], ["Content Calendar", CalendarDays],
   ["Ads & Leads", Megaphone], ["Attendance", Clock3],
   ["Daily Reports", FileBarChart2], ["Leave Management", CalendarDays], ["Team & Roles", ShieldCheck],
-  ["Finance & Payroll", Wallet], ["Reports & Documents", FileBarChart2], ["AI Engine", Sparkles], ["Announcements", MessageSquareText]
+  ["Finance & Payroll", Wallet], ["Academy Management", GraduationCap], ["HR Reports", Users], ["Reports & Documents", FileBarChart2], ["AI Engine", Sparkles], ["Announcements", MessageSquareText]
 ] as const;
 
 const mobilePrimary = ["Overview", "Tasks & Projects", "Attendance", "Content Calendar", "Announcements"] as const;
@@ -40,6 +41,8 @@ const modules = [
   ["Content Calendar", "Plan, approve and publish content", CalendarDays, "purple"],
   ["Ads & Leads", "Campaign performance and lead flow", Megaphone, "orange"],
   ["Finance & Payroll", "Expenses, approvals and salary records", Wallet, "green"],
+  ["Academy Management", "Students, admissions, batches and fee collection", GraduationCap, "blue"],
+  ["HR Reports", "Staff activity, hours and performance", Users, "slate"],
   ["Reports & Documents", "Client performance summaries and PDF export", FileBarChart2, "slate"],
   ["AI Engine", "Gemini-powered agency assistant", Sparkles, "purple"],
   ["Attendance", "Selfie, GPS and work hours", Clock3, "green"],
@@ -77,6 +80,8 @@ export default function Dashboard({ fullName, role, userId }: { fullName: string
           : active === "Content Calendar" ? <ContentCalendarPanel role={role} userId={userId} />
           : active === "Ads & Leads" ? <AdsLeadsPanel role={role} userId={userId} />
           : active === "Finance & Payroll" ? <FinancePanel role={role} userId={userId} />
+          : active === "Academy Management" ? <AcademyPanel role={role} userId={userId} />
+          : active === "HR Reports" ? <LeavePanel userId={userId} role={role} />
           : active === "Reports & Documents" ? <ReportsPanel />
           : active === "AI Engine" ? <AiEnginePanel userId={userId} />
           : active === "Settings" ? <SettingsPanel fullName={fullName} role={role} userId={userId} />
