@@ -5,7 +5,7 @@ import type { Database } from "@/types/database.types";
 import { createClient } from "@/lib/supabase/client";
 import { RefreshCw, ShieldCheck, UserRound, Loader2, Save, Users, UserPlus, X, KeyRound, Copy } from "lucide-react";
 
-type Member = { id: string; full_name: string; email: string | null; phone: string | null; job_title: string | null; department: string | null; role: string; is_active: boolean };
+type Member = { id: string; full_name: string; email: string | null; phone: string | null; job_title: string | null; department: string | null; role: string; is_active: boolean; hourly_rate: number };
 const roles = [
   ["ceo","CEO"],["operations_manager","Operations Manager"],["team_lead","Team Leader"],
   ["office_admin","Office Admin"],["marketer","Digital Marketer"],["designer","Graphic Designer"],
@@ -29,7 +29,7 @@ export default function StaffPanel({ role, userId }: { role: string; userId: str
 
   const load = useCallback(async () => {
     setLoading(true); setError("");
-    const {data,error} = await supabase.from("profiles").select("id,full_name,email,phone,job_title,department,role,is_active").order("full_name");
+    const {data,error} = await supabase.from("profiles").select("id,full_name,email,phone,job_title,department,role,is_active,hourly_rate").order("full_name");
     if (error) setError(error.message); else setMembers((data ?? []) as Member[]);
     setLoading(false);
   },[supabase]);
@@ -86,7 +86,8 @@ export default function StaffPanel({ role, userId }: { role: string; userId: str
       job_title: String(form.get("job_title") || "").trim() || null,
       department: String(form.get("department") || "").trim() || null,
       role: String(form.get("role") || member.role) as Database["public"]["Enums"]["sdma_role"],
-      is_active: form.get("is_active") === "on"
+      is_active: form.get("is_active") === "on",
+      hourly_rate: Math.max(0, Number(form.get("hourly_rate") || 0))
     };
     const {error} = await supabase.from("profiles").update(payload).eq("id",member.id);
     if (error) setError(error.message);
@@ -98,7 +99,7 @@ export default function StaffPanel({ role, userId }: { role: string; userId: str
   const activeCount = members.filter(m => m.is_active).length;
 
   return <section className="staff-workspace">
-    <div className="tasks-toolbar"><div><h2>Team & Roles</h2><p>Manage staff profiles, departments and access levels.</p></div><div className="staff-toolbar-actions"><button className="secondary-action" onClick={() => void load()}><RefreshCw size={15}/> Refresh</button>{canManage && <button className="primary-action" onClick={() => {setShowInvite(v=>!v);setError("");setNotice("");}}><UserPlus size={15}/> Add Staff</button>}</div></div>
+    <div className="tasks-toolbar"><div><h2>Team & Roles</h2><p>Manage staff profiles, hourly pay rates, departments and access levels.</p></div><div className="staff-toolbar-actions"><button className="secondary-action" onClick={() => void load()}><RefreshCw size={15}/> Refresh</button>{canManage && <button className="primary-action" onClick={() => {setShowInvite(v=>!v);setError("");setNotice("");}}><UserPlus size={15}/> Add Staff</button>}</div></div>
     {showInvite && canManage && <form className="staff-invite-panel" onSubmit={e=>void inviteStaff(e)}>
       <div className="staff-invite-heading"><div><h3>Invite a new team member</h3><p>A secure temporary password will be generated. Staff must change it on first login.</p></div><button type="button" className="staff-close" onClick={()=>setShowInvite(false)} aria-label="Close"><X size={18}/></button></div>
       <div className="staff-invite-grid">
@@ -130,6 +131,7 @@ export default function StaffPanel({ role, userId }: { role: string; userId: str
           <label>Phone<input name="phone" defaultValue={member.phone || ""}/></label>
           <label>Job title<input name="job_title" defaultValue={member.job_title || ""}/></label>
           <label>Department<input name="department" defaultValue={member.department || ""}/></label>
+          <label>Hourly rate (₹ / hour)<input name="hourly_rate" type="number" min="0" step="0.01" defaultValue={member.hourly_rate ?? 0} disabled={!canManage}/></label>
           <label>Access role<select name="role" defaultValue={member.role} disabled={!canManage || member.id===userId}>{assignableRoles.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
           <label className="staff-active-toggle"><input name="is_active" type="checkbox" defaultChecked={member.is_active} disabled={!canManage || member.id===userId}/> Active account</label>
         </div>
