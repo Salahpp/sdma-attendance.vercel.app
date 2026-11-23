@@ -17,6 +17,7 @@ import ReportsPanel from "./reports-panel";
 import AiEnginePanel from "./ai-engine-panel";
 import SettingsPanel from "./settings-panel";
 import AgencyOverview from "./agency-overview";
+import DailyWorkPanel from "./daily-work-panel";
 import { visibleModules, type SdmaRole } from "@/lib/auth/roles";
 import {
   Bell, CalendarDays, ChevronDown, CircleHelp, GraduationCap,
@@ -89,6 +90,7 @@ export default function Dashboard({ fullName, role, userId }: { fullName: string
           : active === "Help & Support" ? <SettingsPanel fullName={fullName} role={role} userId={userId} />
           : active === "Announcements" ? <AnnouncementsPanel role={role} userId={userId} defaultTab={notificationFocus ? "notifications" : "announcements"} />
           : active === "Overview" ? <>
+            <DailyWorkPanel role={role} userId={userId} />
             <AgencyOverview role={role} userId={userId} onOpenAttendance={() => setActive("Attendance")} />
             <div className="section-head agency-modules-heading"><div><h2>All modules</h2><p>Your agency, in one workspace</p></div></div>
             <section className="panel"><div className="module-grid">{modules.filter(([title])=>visibleModules(role as SdmaRole).includes(title)).map(([title,detail,Icon,tone]) => <button key={title} className="module" onClick={() => setActive(title)}><span className={"module-icon "+tone}><Icon size={20}/></span><b>{title}</b><small>{detail}</small></button>)}</div></section>
