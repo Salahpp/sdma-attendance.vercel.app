@@ -1,11 +1,9 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -13,17 +11,18 @@ export default function LoginPage() {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (loading) return;
     setError("");
     setLoading(true);
     try {
       const supabase = createClient();
-      const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
+      const { error: authError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
       if (authError) throw authError;
-      router.replace("/");
-      router.refresh();
+      // A single document navigation lets the server read the newly persisted Supabase auth cookies.
+      // Avoid router.refresh() racing the client-side auth state and triggering duplicate route work.
+      window.location.replace("/");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unable to sign in. Please try again.");
-    } finally {
       setLoading(false);
     }
   }
