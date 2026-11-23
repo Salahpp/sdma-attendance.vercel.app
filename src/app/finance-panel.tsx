@@ -4,7 +4,7 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Check, CircleDollarSign, FileText, Loader2, Plus, RefreshCw, Wallet } from "lucide-react";
 
-type Expense={id:string;created_by:string|null;expense_date:string;category:string;description:string|null;amount:number;payment_method:string|null;receipt_url:string|null;approval_status:string;created_at:string};
+type Expense={id:string;created_by:string|null;expense_date:string;category:string;description:string|null;amount:number;payment_method:string|null;receipt_url:string|null;approval_status:string;payment_status:string;paid_amount:number;created_at:string};
 type Person={id:string;full_name:string;role:string;hourly_rate:number};
 type Payroll={id:string;user_id:string;month:string;base_salary:number;hourly_rate:number;hours_worked:number;hourly_earnings:number;allowances:number;deductions:number;advance:number;bonus:number;paid_amount:number;payment_date:string|null;payment_status:string;notes:string|null};
 const financeRoles=["ceo","operations_manager","accounts"];
@@ -15,7 +15,7 @@ export default function FinancePanel({role,userId}:{role:string;userId:string}){
  const supabase=useMemo(()=>createClient(),[]);
  const canViewPayroll=financeRoles.includes(role);
  const [expenses,setExpenses]=useState<Expense[]>([]),[payroll,setPayroll]=useState<Payroll[]>([]),[people,setPeople]=useState<Person[]>([]);
- const [tab,setTab]=useState<"expenses"|"payroll">("expenses"),[loading,setLoading]=useState(true),[saving,setSaving]=useState(false),[error,setError]=useState(""),[success,setSuccess]=useState("");
+ const [tab,setTab]=useState<"expenses"|"payroll">("expenses"),[expenseMonth,setExpenseMonth]=useState(monthNow()),[loading,setLoading]=useState(true),[saving,setSaving]=useState(false),[error,setError]=useState(""),[success,setSuccess]=useState("");
  const [showExpense,setShowExpense]=useState(false),[showPayroll,setShowPayroll]=useState(false);
  const [category,setCategory]=useState("Office"),[amount,setAmount]=useState(""),[expenseDate,setExpenseDate]=useState(todayIndia()),[description,setDescription]=useState(""),[paymentMethod,setPaymentMethod]=useState("Bank transfer"),[receipt,setReceipt]=useState<File|null>(null);
  const [personId,setPersonId]=useState(""),[month,setMonth]=useState(monthNow()),[base,setBase]=useState(""),[allowances,setAllowances]=useState("0"),[bonus,setBonus]=useState("0"),[deductions,setDeductions]=useState("0"),[advance,setAdvance]=useState("0"),[notes,setNotes]=useState("");
@@ -31,8 +31,8 @@ export default function FinancePanel({role,userId}:{role:string;userId:string}){
   setLoading(false);
  },[supabase,canViewPayroll]);
  useEffect(()=>{void load()},[load]);
- const totalExpenses=expenses.filter(x=>x.approval_status==="approved").reduce((s,x)=>s+Number(x.amount),0);
- const pendingExpenses=expenses.filter(x=>x.approval_status==="pending").reduce((s,x)=>s+Number(x.amount),0);
+ const monthlyExpenses=expenses.filter(x=>x.expense_date.startsWith(expenseMonth.slice(0,7)));\n const totalExpenses=monthlyExpenses.filter(x=>x.approval_status==="approved").reduce((s,x)=>s+Number(x.amount),0);
+ const pendingExpenses=monthlyExpenses.filter(x=>x.approval_status==="pending").reduce((s,x)=>s+Number(x.amount),0);
  const payrollDue=payroll.filter(x=>x.payment_status!=="paid").reduce((s,x)=>s+Math.max(0,Number(x.hourly_earnings||0)+Number(x.allowances)+Number(x.bonus)-Number(x.deductions)-Number(x.advance)-Number(x.paid_amount)),0);
  const resetExpense=()=>{setAmount("");setDescription("");setReceipt(null);setShowExpense(false)};
  async function submitExpense(ev:FormEvent){
@@ -66,7 +66,7 @@ export default function FinancePanel({role,userId}:{role:string;userId:string}){
   const {error:e}=await supabase.from("expenses").update({approval_status:status}).eq("id",item.id);
   if(e)setError(e.message);else{setSuccess("Expense status updated.");await load()}
  }
- async function markPaid(item:Payroll){
+ async function markExpensePaid(item:Expense){\n  const {error:e}=await (supabase as any).from("expenses").update({payment_status:"paid",paid_amount:item.amount,paid_at:new Date().toISOString()}).eq("id",item.id);\n  if(e)setError(e.message);else{setSuccess("Expense payment recorded.");await load()}\n }\n async function markPaid(item:Payroll){
   const {error:e}=await supabase.from("payroll").update({payment_status:"paid",paid_amount:Math.max(0,Number(item.hourly_earnings||0)+Number(item.allowances)+Number(item.bonus)-Number(item.deductions)-Number(item.advance)),payment_date:todayIndia()}).eq("id",item.id);
   if(e)setError(e.message);else{setSuccess("Payroll marked as paid.");await load()}
  }
@@ -77,8 +77,8 @@ export default function FinancePanel({role,userId}:{role:string;userId:string}){
  const personName=(id:string)=>people.find(p=>p.id===id)?.full_name||"Staff member";
  return <div className="finance-workspace">
   <div className="finance-kpis">
-   <article><span>Approved expenses</span><b>{money(totalExpenses)}</b><small>From visible expense records</small></article>
-   <article><span>Pending expenses</span><b>{money(pendingExpenses)}</b><small>Awaiting review</small></article>
+   <article><span>Approved expenses</span><b>{money(totalExpenses)}</b><small>Selected month</small></article>
+   <article><span>Pending expenses</span><b>{money(pendingExpenses)}</b><small>Selected month</small></article>
    {canViewPayroll&&<article><span>Unpaid payroll balance</span><b>{money(payrollDue)}</b><small>Based on entered payroll records</small></article>}
   </div>
   <div className="finance-toolbar"><div className="finance-tabs"><button className={tab==="expenses"?"active":""} onClick={()=>setTab("expenses")}><Wallet size={15}/> Expenses</button>{canViewPayroll&&<button className={tab==="payroll"?"active":""} onClick={()=>setTab("payroll")}><CircleDollarSign size={15}/> Payroll</button>}</div><button className="primary-action" onClick={()=>tab==="expenses"?setShowExpense(!showExpense):setShowPayroll(!showPayroll)}><Plus size={15}/>{tab==="expenses"?"Add expense":"Add payroll"}</button></div>
@@ -91,7 +91,7 @@ export default function FinancePanel({role,userId}:{role:string;userId:string}){
    <div className="task-form-grid"><label>Staff member<select required value={personId} onChange={e=>setPersonId(e.target.value)}><option value="">Select staff</option>{people.map(p=><option key={p.id} value={p.id}>{p.full_name} · {p.role.replaceAll("_"," ")}</option>)}</select></label><label>Salary month<input required type="month" value={month.slice(0,7)} onChange={e=>setMonth(e.target.value+"-01")}/></label><label>Fixed hourly rate<input readOnly value={money(Number(people.find(p=>p.id===personId)?.hourly_rate||0))+" / hour"}/></label><label>Allowances (₹)<input type="number" min="0" value={allowances} onChange={e=>setAllowances(e.target.value)}/></label><label>Bonus / incentive (₹)<input type="number" min="0" value={bonus} onChange={e=>setBonus(e.target.value)}/></label><label>Deductions (₹)<input type="number" min="0" value={deductions} onChange={e=>setDeductions(e.target.value)}/></label><label>Advance (₹)<input type="number" min="0" value={advance} onChange={e=>setAdvance(e.target.value)}/></label><label>Notes<input value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Optional"/></label></div>
    <p className="content-footnote">Hourly earnings = verified completed attendance session hours × staff hourly rate. Net payable = hourly earnings + allowances + bonus − deductions − advance. Payroll is visible only to CEO, Operations Manager and Accounts.</p><button className="primary-action" disabled={saving||!personId}>{saving?<Loader2 className="spin" size={15}/>:<Check size={15}/>}Save payroll</button>
   </form>}
-  {loading?<div className="task-empty"><Loader2 className="spin" size={22}/>Loading finance records…</div>:tab==="expenses"?<section className="finance-list"><div className="panel-head"><div><h3>Expense register</h3><p>Submitted expenses and approval status</p></div><button className="secondary-action" onClick={()=>void load()}><RefreshCw size={14}/> Refresh</button></div>
+  {loading?<div className="task-empty"><Loader2 className="spin" size={22}/>Loading finance records…</div>:tab==="expenses"?<section className="finance-list"><div className="panel-head"><div><h3>Expense register</h3><p>Submitted expenses and approval status</p></div><input aria-label="Expense month" type="month" value={expenseMonth.slice(0,7)} onChange={e=>setExpenseMonth(e.target.value+"-01")}/><button className="secondary-action" onClick={()=>void load()}><RefreshCw size={14}/> Refresh</button></div>
    {!expenses.length?<div className="task-empty"><FileText size={25}/><b>No expenses yet</b><span>Use Add expense to submit the first record.</span></div>:expenses.map(item=><article className="finance-row" key={item.id}><div className="finance-row-main"><b>{item.category} · {money(Number(item.amount))}</b><small>{item.expense_date} · {item.payment_method||"Payment method not set"}</small>{item.description&&<p>{item.description}</p>}</div><span className={"finance-status "+item.approval_status}>{item.approval_status}</span><div className="finance-row-actions">{item.receipt_url&&<button className="secondary-action" onClick={()=>void openReceipt(item.receipt_url!)}>Receipt</button>}{canViewPayroll&&item.approval_status==="pending"&&<><button className="secondary-action" onClick={()=>void reviewExpense(item,"approved")}>Approve</button><button className="secondary-action" onClick={()=>void reviewExpense(item,"rejected")}>Reject</button></>}</div></article>)}
   </section>:<section className="finance-list"><div className="panel-head"><div><h3>Monthly payroll</h3><p>Salary records and payment tracking</p></div><button className="secondary-action" onClick={()=>void load()}><RefreshCw size={14}/> Refresh</button></div>
    {!payroll.length?<div className="task-empty"><CircleDollarSign size={25}/><b>No payroll records</b><span>Create a monthly payroll record for a staff member.</span></div>:payroll.map(item=>{const net=Number(item.hourly_earnings||0)+Number(item.allowances)+Number(item.bonus)-Number(item.deductions)-Number(item.advance);return <article className="finance-row" key={item.id}><div className="finance-row-main"><b>{personName(item.user_id)} · {money(net)}</b><small>{item.month.slice(0,7)} · {Number(item.hours_worked||0).toFixed(2)} hrs × {money(Number(item.hourly_rate||0))}/hr · Bonus {money(Number(item.bonus))}</small>{item.notes&&<p>{item.notes}</p>}</div><span className={"finance-status "+item.payment_status}>{item.payment_status}</span>{item.payment_status!=="paid"&&<div className="finance-row-actions"><button className="secondary-action" onClick={()=>void markPaid(item)}>Mark paid</button></div>}</article>})}
