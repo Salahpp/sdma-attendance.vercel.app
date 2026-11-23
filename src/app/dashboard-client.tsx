@@ -11,6 +11,7 @@ import ContentCalendarPanel from "./content-calendar-panel";
 import AdsLeadsPanel from "./ads-leads-panel";
 import FinancePanel from "./finance-panel";
 import AcademyPanel from "./academy-panel";
+import HrReportsPanel from "./hr-reports-panel";
 import AnnouncementsPanel from "./announcements-panel";
 import ReportsPanel from "./reports-panel";
 import AiEnginePanel from "./ai-engine-panel";
@@ -81,7 +82,7 @@ export default function Dashboard({ fullName, role, userId }: { fullName: string
           : active === "Ads & Leads" ? <AdsLeadsPanel role={role} userId={userId} />
           : active === "Finance & Payroll" ? <FinancePanel role={role} userId={userId} />
           : active === "Academy Management" ? <AcademyPanel role={role} userId={userId} />
-          : active === "HR Reports" ? <LeavePanel userId={userId} role={role} />
+          : active === "HR Reports" ? <HrReportsPanel userId={userId} role={role} />
           : active === "Reports & Documents" ? <ReportsPanel />
           : active === "AI Engine" ? <AiEnginePanel userId={userId} />
           : active === "Settings" ? <SettingsPanel fullName={fullName} role={role} userId={userId} />
