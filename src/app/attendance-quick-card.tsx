@@ -1,47 +1,40 @@
 "use client";
-import {useEffect,useMemo,useState} from "react";
+import {useCallback,useEffect,useMemo,useRef,useState} from "react";
 import {createClient} from "@/lib/supabase/client";
-import {Clock3,LogOut,Camera,RefreshCw} from "lucide-react";
+import {Clock3,LogOut,Camera,RefreshCw,MapPin,CheckCircle2,X,RotateCcw,Loader2,ShieldCheck} from "lucide-react";
 function today(){return new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata"}).format(new Date());}
 function clock(value:string){return new Date(value).toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Kolkata"});}
+type Row={check_in:string|null;check_out:string|null;status:string}|null;
 export default function AttendanceQuickCard({userId,onOpen}:{userId:string;onOpen:()=>void}){
  const db=useMemo(()=>createClient(),[]);
- const [row,setRow]=useState<any>(null);
- const [now,setNow]=useState(Date.now());
- const [loading,setLoading]=useState(true);
- const [error,setError]=useState("");
- useEffect(()=>{
-  let active=true;
-  const load=async()=>{
-   setError("");
-   const {data,error}=await db.from("attendance").select("check_in,check_out,status").eq("user_id",userId).eq("attendance_date",today()).maybeSingle();
-   if(!active)return;
-   if(error)setError("Attendance status unavailable");
-   else setRow(data);
-   setLoading(false);
-  };
-  void load();
-  const timer=window.setInterval(()=>setNow(Date.now()),1000);
-  const refresh=window.setInterval(()=>void load(),60000);
-  return()=>{active=false;window.clearInterval(timer);window.clearInterval(refresh);};
- },[db,userId]);
- const started=row?.check_in?new Date(row.check_in).getTime():0;
- const elapsed=started?Math.max(0,(new Date(row?.check_out||now).getTime()-started)/1000):0;
- const h=Math.floor(elapsed/3600),m=Math.floor((elapsed%3600)/60),s=Math.floor(elapsed%60);
- const working=Boolean(row?.check_in&&!row?.check_out);
- const completed=Boolean(row?.check_in&&row?.check_out);
- return <section className="attendance-quick-card" aria-label="Today's attendance">
+ const videoRef=useRef<HTMLVideoElement>(null);const streamRef=useRef<MediaStream|null>(null);
+ const [row,setRow]=useState<Row>(null);const [now,setNow]=useState(Date.now());const [loading,setLoading]=useState(true);const [error,setError]=useState("");
+ const [modal,setModal]=useState(false);const [photo,setPhoto]=useState<Blob|null>(null);const [photoUrl,setPhotoUrl]=useState("");const [cameraReady,setCameraReady]=useState(false);const [busy,setBusy]=useState(false);const [message,setMessage]=useState("");
+ const load=useCallback(async()=>{setError("");const {data,error}=await db.from("attendance").select("check_in,check_out,status").eq("user_id",userId).eq("attendance_date",today()).maybeSingle();if(error)setError("Attendance status unavailable: "+error.message);else setRow(data as Row);setLoading(false);},[db,userId]);
+ useEffect(()=>{void load();const tick=window.setInterval(()=>setNow(Date.now()),1000);const refresh=window.setInterval(()=>void load(),60000);return()=>{window.clearInterval(tick);window.clearInterval(refresh);};},[load]);
+ const stopCamera=useCallback(()=>{streamRef.current?.getTracks().forEach(t=>t.stop());streamRef.current=null;setCameraReady(false);},[]);
+ useEffect(()=>()=>{stopCamera();if(photoUrl)URL.revokeObjectURL(photoUrl);},[stopCamera,photoUrl]);
+ useEffect(()=>{if(!modal||photo)return;let cancelled=false;(async()=>{try{if(!navigator.mediaDevices?.getUserMedia)throw new Error("Camera requires HTTPS and a supported browser.");const stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:"user",width:{ideal:900},height:{ideal:1200}}});if(cancelled){stream.getTracks().forEach(t=>t.stop());return;}streamRef.current=stream;if(videoRef.current){videoRef.current.srcObject=stream;await videoRef.current.play();}setCameraReady(true);setError("");}catch(e){setError(e instanceof Error?e.message:"Unable to open camera. Check camera permission.");}})();return()=>{cancelled=true;};},[modal,photo]);
+ const working=Boolean(row?.check_in&&!row?.check_out),completed=Boolean(row?.check_in&&row?.check_out),started=row?.check_in?new Date(row.check_in).getTime():0;
+ const elapsed=started?Math.max(0,(new Date(row?.check_out||now).getTime()-started)/1000):0;const h=Math.floor(elapsed/3600),m=Math.floor((elapsed%3600)/60),s=Math.floor(elapsed%60);
+ function close(){stopCamera();setModal(false);setPhoto(null);if(photoUrl)URL.revokeObjectURL(photoUrl);setPhotoUrl("");setError("");setMessage("");}
+ function capture(){const video=videoRef.current;if(!video||!video.videoWidth){setError("Camera is still starting. Please wait a moment.");return;}const canvas=document.createElement("canvas");const width=Math.min(video.videoWidth,900),height=Math.round(width*video.videoHeight/video.videoWidth);canvas.width=width;canvas.height=height;const ctx=canvas.getContext("2d");if(!ctx){setError("Could not capture selfie.");return;}ctx.translate(width,0);ctx.scale(-1,1);ctx.drawImage(video,0,0,width,height);canvas.toBlob(blob=>{if(!blob){setError("Could not process selfie.");return;}setPhoto(blob);setPhotoUrl(URL.createObjectURL(blob));stopCamera();setError("");},"image/jpeg",.84);}
+ async function confirmPunch(){if(!photo||busy)return;setBusy(true);setError("");setMessage("");try{const position=await new Promise<GeolocationPosition>((resolve,reject)=>{if(!navigator.geolocation){reject(new Error("Location is not supported on this device."));return;}navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:true,timeout:20000,maximumAge:0});});const action=working?"check-out":"check-in";const path=userId+"/"+today()+"/"+action+"-"+crypto.randomUUID()+".jpg";const upload=await db.storage.from("attendance-selfies").upload(path,photo,{contentType:"image/jpeg",upsert:false});if(upload.error)throw upload.error;const args={p_lat:position.coords.latitude,p_lng:position.coords.longitude,p_selfie_path:path,p_note:null};const result=working?await db.rpc("attendance_check_out",args):await db.rpc("attendance_check_in",args);if(result.error)throw result.error;setMessage(working?"Punch out recorded successfully.":"Punch in recorded successfully.");setPhoto(null);if(photoUrl)URL.revokeObjectURL(photoUrl);setPhotoUrl("");setModal(false);await load();}catch(e){setError(e instanceof Error?e.message:"Punch failed. Please try again.");}finally{setBusy(false);}}
+ return <>
+ <section className="attendance-quick-card" aria-label="Today's attendance">
   <div className="quick-attendance-icon"><Clock3 size={20}/></div>
-  <div className="quick-attendance-copy" aria-live="polite">
-   <span>Today's attendance · IST</span>
-   <b>{loading?"Checking attendance…":error|| (completed?"Shift completed":working?"You're working":"Not punched in")}</b>
-   <strong>{loading?"—":started?h+"h "+m+"m "+s+"s":"00h 00m 00s"}</strong>
-   <small>{row?.check_in?"Started at "+clock(row.check_in):"Punch in with a selfie and GPS to start your work session"}</small>
-  </div>
-  <button className="primary-action" onClick={onOpen} disabled={loading||Boolean(error)||completed}>
-   {working?<LogOut size={15}/>:<Camera size={15}/>}
-   {loading?"Loading…":completed?"Attendance completed":working?"Punch out":"Punch attendance"}
-  </button>
-  {error&&<button className="attendance-quick-retry" onClick={()=>window.location.reload()} aria-label="Reload attendance status"><RefreshCw size={14}/> Reload</button>}
- </section>;
+  <div className="quick-attendance-copy" aria-live="polite"><span>Today's attendance · IST</span><b>{loading?"Checking attendance…":error?"Status needs refresh":completed?"Shift completed":working?"You're working":"Not punched in"}</b><strong>{loading?"—":started?h+"h "+m+"m "+s+"s":"00h 00m 00s"}</strong><small>{row?.check_in?"Started at "+clock(row.check_in):"One-tap selfie + GPS attendance"}</small></div>
+  <button className="primary-action" onClick={()=>{setModal(true);setMessage("");setError("");}} disabled={loading||Boolean(error)||completed}>{working?<LogOut size={15}/>:<Camera size={15}/>}{loading?"Loading…":completed?"Attendance completed":working?"Punch out":"Punch in"}</button>
+  {error&&!modal&&<button className="attendance-quick-retry" onClick={()=>void load()} aria-label="Refresh attendance"><RefreshCw size={14}/> Retry</button>}
+ </section>
+ {message&&<div className="task-alert success">{message}</div>}
+ {modal&&<div className="attendance-modal-backdrop" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget&&!busy)close();}}><section className="attendance-modal" role="dialog" aria-modal="true" aria-labelledby="punch-title">
+  <header><div><span>SHAH DIGITAL · ATTENDANCE</span><h2 id="punch-title">{working?"Punch out":"Punch in"}</h2><p>Take a fresh selfie to verify your attendance</p></div><button type="button" className="attendance-modal-close" onClick={close} disabled={busy} aria-label="Close"><X size={20}/></button></header>
+  <div className="attendance-modal-camera">{photoUrl?<img src={photoUrl} alt="Your attendance selfie"/>:<><video ref={videoRef} muted playsInline autoPlay/><div className="attendance-camera-overlay"><span/></div>{!cameraReady&&<div className="attendance-camera-loading"><Loader2 className="spin" size={25}/><span>Opening front camera…</span></div>}</>}</div>
+  <div className="attendance-modal-meta"><span><Camera size={14}/> Selfie verification</span><span><MapPin size={14}/> GPS at punch time</span></div>
+  {error&&<p className="task-alert error">{error}</p>}
+  <div className="attendance-modal-actions">{!photo?<button type="button" className="primary-action" onClick={capture} disabled={!cameraReady||busy}><Camera size={16}/> Capture selfie</button>:<><button type="button" className="secondary-action" onClick={()=>{setPhoto(null);if(photoUrl)URL.revokeObjectURL(photoUrl);setPhotoUrl("");setError("");}} disabled={busy}><RotateCcw size={15}/> Retake</button><button type="button" className="primary-action" onClick={()=>void confirmPunch()} disabled={busy}>{busy?<Loader2 className="spin" size={16}/>:<CheckCircle2 size={16}/>} {busy?"Verifying GPS & saving…":"Confirm "+(working?"Punch out":"Punch in")}</button></>}</div>
+  <p className="attendance-modal-privacy"><ShieldCheck size={14}/> Location is requested only when you confirm the punch. Camera and GPS are not continuously tracked.</p>
+ </section></div>}
+ </>;
 }
