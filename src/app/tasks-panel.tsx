@@ -76,7 +76,7 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
     }
     const isDailyTask = form.get("daily_task") === "on";
     if (isDailyTask) {
-      const { error: templateError } = await supabase.from("task_templates").insert({
+      const { error: templateError } = await (supabase as any).from("task_templates").insert({
         title, description: String(form.get("description") || "").trim() || null,
         client_id: clientId || null, assigned_to: String(form.get("assigned_to") || "") || null,
         priority: String(form.get("priority") || "medium"),
