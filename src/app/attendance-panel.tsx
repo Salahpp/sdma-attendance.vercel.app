@@ -18,6 +18,9 @@ function officeDate() {
 function timeLabel(value:string|null) {
   return value ? new Date(value).toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Kolkata"}) : "—";
 }
+function timeInput(value:string|null) {
+  return value ? new Intl.DateTimeFormat("en-GB",{timeZone:"Asia/Kolkata",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).format(new Date(value)) : "";
+}
 
 export default function AttendancePanel({userId,role}:{userId:string;role:string}) {
   const supabase = useMemo(()=>createClient(),[]);
@@ -131,11 +134,26 @@ export default function AttendancePanel({userId,role}:{userId:string;role:string
     const form=new FormData(event.currentTarget);
     const status=String(form.get("status")||row.status);
     const breakMinutes=Math.max(0,Number(form.get("break_minutes")||0));
+    const checkInTime=String(form.get("check_in_time")||"");
+    const checkOutTime=String(form.get("check_out_time")||"");
+    const reason=String(form.get("correction_reason")||"").trim();
     setCorrectingId(row.id);setError("");setMessage("");
+    if(checkInTime&&checkOutTime){
+      if(!reason){setError("Please enter a reason for changing attendance time.");setCorrectingId(null);return;}
+      const checkIn=new Date(row.attendance_date+"T"+checkInTime+":00+05:30");
+      const checkOut=new Date(row.attendance_date+"T"+checkOutTime+":00+05:30");
+      if(!Number.isFinite(checkIn.getTime())||!Number.isFinite(checkOut.getTime())||checkOut<=checkIn){setError("Check-out must be later than check-in.");setCorrectingId(null);return;}
+      const {error:timeError}=await (supabase as any).rpc("sdma_manual_attendance_correction",{
+        p_attendance_id:row.id,p_check_in:checkIn.toISOString(),p_check_out:checkOut.toISOString(),p_reason:reason
+      });
+      if(timeError){setError(timeError.message);setCorrectingId(null);return;}
+    }
     const {error:updateError}=await supabase.from("attendance").update({status,break_minutes:breakMinutes}).eq("id",row.id);
     if(updateError){setError(updateError.message);setCorrectingId(null);return;}
-    const {error:auditError}=await supabase.from("audit_logs").insert({actor_id:userId,action:"attendance_corrected",entity_type:"attendance",entity_id:row.id,metadata:{status,break_minutes:breakMinutes}});
-    setMessage(auditError?"Attendance updated, but the audit note could not be saved: "+auditError.message:"Attendance record corrected.");
+    if(!(checkInTime&&checkOutTime)){
+      const {error:auditError}=await supabase.from("audit_logs").insert({actor_id:userId,action:"attendance_corrected",entity_type:"attendance",entity_id:row.id,metadata:{status,break_minutes:breakMinutes}});
+      setMessage(auditError?"Attendance updated, but the audit note could not be saved: "+auditError.message:"Attendance record corrected.");
+    } else setMessage("Attendance times corrected and audit history saved.");
     setCorrectingId(null);await load();
   }
 
@@ -195,9 +213,12 @@ export default function AttendancePanel({userId,role}:{userId:string;role:string
         <div><span className={"leave-status "+row.status}>{row.status.replaceAll("_"," ")}</span><small>{timeLabel(row.check_in)} – {timeLabel(row.check_out)}</small></div>
         <div><b>{(()=>{if(!row.check_in)return "—";const st=new Date(row.check_in).getTime();const en=row.check_out?new Date(row.check_out).getTime():(row.attendance_date===officeDate()?Date.now():st);const mins=Math.max(0,Math.floor((en-st)/60000)-Number(row.break_minutes||0));return Math.floor(mins/60)+"h "+mins%60+"m";})()}</b><small>Break: {row.break_minutes||0} min</small></div>
         {canMonitorTeam&&<form className="attendance-correction" onSubmit={e=>void saveCorrection(e,row)}>
+          <label>Check-in<input name="check_in_time" type="time" defaultValue={timeInput(row.check_in)} required/></label>
+          <label>Check-out<input name="check_out_time" type="time" defaultValue={timeInput(row.check_out)} required/></label>
+          <label>Correction reason<input name="correction_reason" type="text" placeholder="e.g. Punch-out failed" required/></label>
           <select name="status" defaultValue={row.status}><option value="present">Present</option><option value="late">Late</option><option value="half_day">Half day</option><option value="absent">Absent</option><option value="leave">Leave</option></select>
           <input name="break_minutes" type="number" min="0" max="1440" defaultValue={row.break_minutes||0} aria-label="Break minutes"/>
-          <button className="secondary-action" type="submit" disabled={correctingId===row.id}>{correctingId===row.id?"Saving…":"Correct"}</button>
+          <button className="secondary-action" type="submit" disabled={correctingId===row.id}>{correctingId===row.id?"Saving…":"Save correction"}</button>
         </form>}
       </article>)}</div>}
     </section>
