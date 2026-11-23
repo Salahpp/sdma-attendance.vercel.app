@@ -31,7 +31,8 @@ export default function FinancePanel({role,userId}:{role:string;userId:string}){
   setLoading(false);
  },[supabase,canViewPayroll]);
  useEffect(()=>{void load()},[load]);
- const monthlyExpenses=expenses.filter(x=>x.expense_date.startsWith(expenseMonth.slice(0,7)));\n const totalExpenses=monthlyExpenses.filter(x=>x.approval_status==="approved").reduce((s,x)=>s+Number(x.amount),0);
+ const monthlyExpenses=expenses.filter(x=>x.expense_date.startsWith(expenseMonth.slice(0,7)));
+ const totalExpenses=monthlyExpenses.filter(x=>x.approval_status==="approved").reduce((s,x)=>s+Number(x.amount),0);
  const pendingExpenses=monthlyExpenses.filter(x=>x.approval_status==="pending").reduce((s,x)=>s+Number(x.amount),0);
  const payrollDue=payroll.filter(x=>x.payment_status!=="paid").reduce((s,x)=>s+Math.max(0,Number(x.hourly_earnings||0)+Number(x.allowances)+Number(x.bonus)-Number(x.deductions)-Number(x.advance)-Number(x.paid_amount)),0);
  const resetExpense=()=>{setAmount("");setDescription("");setReceipt(null);setShowExpense(false)};
@@ -66,7 +67,11 @@ export default function FinancePanel({role,userId}:{role:string;userId:string}){
   const {error:e}=await supabase.from("expenses").update({approval_status:status}).eq("id",item.id);
   if(e)setError(e.message);else{setSuccess("Expense status updated.");await load()}
  }
- async function markExpensePaid(item:Expense){\n  const {error:e}=await (supabase as any).from("expenses").update({payment_status:"paid",paid_amount:item.amount,paid_at:new Date().toISOString()}).eq("id",item.id);\n  if(e)setError(e.message);else{setSuccess("Expense payment recorded.");await load()}\n }\n async function markPaid(item:Payroll){
+ async function markExpensePaid(item:Expense){
+  const {error:e}=await (supabase as any).from("expenses").update({payment_status:"paid",paid_amount:item.amount,paid_at:new Date().toISOString()}).eq("id",item.id);
+  if(e)setError(e.message);else{setSuccess("Expense payment recorded.");await load()}
+ }
+ async function markPaid(item:Payroll){
   const {error:e}=await supabase.from("payroll").update({payment_status:"paid",paid_amount:Math.max(0,Number(item.hourly_earnings||0)+Number(item.allowances)+Number(item.bonus)-Number(item.deductions)-Number(item.advance)),payment_date:todayIndia()}).eq("id",item.id);
   if(e)setError(e.message);else{setSuccess("Payroll marked as paid.");await load()}
  }
