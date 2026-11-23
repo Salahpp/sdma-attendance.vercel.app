@@ -19,7 +19,48 @@ export default function AttendanceQuickCard({userId,onOpen}:{userId:string;onOpe
  const h=Math.floor(seconds/3600),m=Math.floor((seconds%3600)/60),s=seconds%60;
  function close(){stopCamera();setModal(false);setPhoto(null);if(photoUrl)URL.revokeObjectURL(photoUrl);setPhotoUrl("");setError("");setMessage("");}
  function capture(){const video=videoRef.current;if(!video||!video.videoWidth){setError("Camera is still starting. Please wait a moment.");return;}const canvas=document.createElement("canvas");const width=Math.min(video.videoWidth,900),height=Math.round(width*video.videoHeight/video.videoWidth);canvas.width=width;canvas.height=height;const ctx=canvas.getContext("2d");if(!ctx){setError("Could not capture selfie.");return;}ctx.translate(width,0);ctx.scale(-1,1);ctx.drawImage(video,0,0,width,height);canvas.toBlob(blob=>{if(!blob){setError("Could not process selfie.");return;}setPhoto(blob);setPhotoUrl(URL.createObjectURL(blob));stopCamera();setError("");},"image/jpeg",.84);}
- async function confirmPunch(){if(!photo||busy)return;setBusy(true);setError("");setMessage("");try{const position=await new Promise<GeolocationPosition>((resolve,reject)=>{if(!navigator.geolocation){reject(new Error("Location is not supported on this device."));return;}navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:true,timeout:20000,maximumAge:0});});const action=active?"check-out":"check-in";const path=userId+"/"+today()+"/"+action+"-"+crypto.randomUUID()+".jpg";const upload=await db.storage.from("attendance-selfies").upload(path,photo,{contentType:"image/jpeg",upsert:false});if(upload.error)throw upload.error;const args={p_lat:position.coords.latitude,p_lng:position.coords.longitude,p_selfie_path:path,p_note:null};const result=active?await db.rpc("attendance_check_out",args):await db.rpc("attendance_check_in",args);if(result.error)throw result.error;setMessage(active?"Punch out recorded successfully.":"Punch in recorded successfully.");setPhoto(null);if(photoUrl)URL.revokeObjectURL(photoUrl);setPhotoUrl("");setModal(false);await load();}catch(e){setError(e instanceof Error?e.message:"Punch failed. Please try again.");}finally{setBusy(false);}}
+ async function confirmPunch(){
+  if(!photo||busy)return;
+  setBusy(true);setError("");setMessage("");
+  let stage="GPS location";let uploadedPath:string|null=null;
+  try{
+   const getPosition=(highAccuracy:boolean,timeout:number)=>new Promise<GeolocationPosition>((resolve,reject)=>{
+    if(!navigator.geolocation){reject(new Error("Location is not supported. Enable Location Services for Safari."));return;}
+    navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:highAccuracy,timeout,maximumAge:0});
+   });
+   let position:GeolocationPosition;
+   try{position=await getPosition(true,20000);}
+   catch(firstError){
+    const geo=firstError as GeolocationPositionError;
+    if(geo?.code===1)throw new Error("Location permission denied. iPhone Settings → Privacy & Security → Location Services → Safari Websites → While Using the App; enable Precise Location.");
+    if(geo?.code===2||geo?.code===3){
+     setMessage("Precise GPS is taking longer. Trying standard GPS…");
+     try{position=await getPosition(false,15000);}
+     catch(secondError){
+      const fallback=secondError as GeolocationPositionError;
+      if(fallback?.code===1)throw new Error("Location permission denied. Allow location access for this website in Safari settings.");
+      if(fallback?.code===3)throw new Error("Could not get GPS location in time. Move near a window or outdoors, enable Precise Location, then retry.");
+      throw new Error("Your iPhone could not determine its location. Check Location Services and try again.");
+     }
+    }else throw firstError;
+   }
+   if(!Number.isFinite(position.coords.latitude)||!Number.isFinite(position.coords.longitude))throw new Error("GPS returned invalid coordinates. Please retry.");
+   const action=active?"check-out":"check-in";const path=userId+"/"+today()+"/"+action+"-"+crypto.randomUUID()+".jpg";
+   stage="Selfie upload";setMessage("GPS verified. Uploading selfie…");
+   const upload=await db.storage.from("attendance-selfies").upload(path,photo,{contentType:"image/jpeg",upsert:false});
+   if(upload.error)throw new Error("Selfie upload failed: "+upload.error.message);
+   uploadedPath=path;stage="Attendance save";setMessage("Selfie uploaded. Saving attendance…");
+   const args={p_lat:position.coords.latitude,p_lng:position.coords.longitude,p_selfie_path:path,p_note:null};
+   const result=active?await db.rpc("attendance_check_out",args):await db.rpc("attendance_check_in",args);
+   if(result.error)throw new Error("Attendance database save failed: "+result.error.message);
+   uploadedPath=null;setMessage(active?"Punch out recorded successfully.":"Punch in recorded successfully.");
+   setPhoto(null);if(photoUrl)URL.revokeObjectURL(photoUrl);setPhotoUrl("");setModal(false);await load();
+  }catch(e){
+   if(uploadedPath){const cleanup=await db.storage.from("attendance-selfies").remove([uploadedPath]);if(cleanup.error)console.warn("Selfie cleanup failed:",cleanup.error.message);}
+   const detail=e instanceof Error?e.message:"Unknown error";console.error("SDMA quick attendance punch failed at "+stage,e);
+   setError(stage+": "+detail);
+  }finally{setBusy(false);}
+ }
  return <>
  <section className="attendance-quick-card" aria-label="Today's attendance"><div className="quick-attendance-icon"><Clock3 size={20}/></div><div className="quick-attendance-copy" aria-live="polite"><span>Today's attendance · IST</span><b>{loading?"Checking attendance…":error?"Status needs refresh":active?"You're working":completed?"Sessions completed":"Not punched in"}</b><strong>{loading?"—":h+"h "+m+"m "+s+"s"}</strong><small>{active?"Started at "+clock(active.check_in):sessions.length? sessions.length+" session(s) recorded today":"7-hour daily target · One-tap selfie + GPS"}</small></div><button className="primary-action" onClick={()=>{setModal(true);setMessage("");setError("");}} disabled={loading||Boolean(error)}>{active?<LogOut size={15}/>:<Camera size={15}/>} {loading?"Loading…":active?"Punch out":"Punch in"}</button>{error&&!modal&&<button className="attendance-quick-retry" onClick={()=>void load()} aria-label="Refresh attendance"><RefreshCw size={14}/> Retry</button>}</section>
  {message&&<div className="task-alert success">{message}</div>}
