@@ -41,6 +41,9 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
 
   const load = useCallback(async () => {
     setLoading(true); setError("");
+    const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date());
+    const generated = await (supabase as any).rpc("sdma_generate_daily_template_tasks", { p_day: today });
+    if (generated.error) setError(generated.error.message);
     const [taskResult, peopleResult, clientResult, projectResult] = await Promise.all([
       supabase.from("tasks").select("*").order("created_at", { ascending: false }).limit(200),
       canAssign ? supabase.from("profiles").select("id,full_name,role").eq("is_active", true).order("full_name") : Promise.resolve({ data: [], error: null }),
@@ -70,6 +73,19 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
     const selectedProject = projects.find(project => project.id === projectId);
     if (projectId && (!selectedProject || selectedProject.client_id !== clientId)) {
       setError("Choose a project belonging to the selected client."); setSaving(false); return;
+    }
+    const isDailyTask = form.get("daily_task") === "on";
+    if (isDailyTask) {
+      const { error: templateError } = await supabase.from("task_templates").insert({
+        title, description: String(form.get("description") || "").trim() || null,
+        client_id: clientId || null, assigned_to: String(form.get("assigned_to") || "") || null,
+        priority: String(form.get("priority") || "medium"),
+        category: String(form.get("category") || "").trim() || "Daily",
+        created_by: userId, frequency: "daily", is_active: true
+      });
+      if (templateError) setError(templateError.message);
+      else { setSuccess("Daily Task saved. It will appear in the assigned person’s morning To-do list every day."); formElement.reset(); setSelectedClientId(""); setSelectedProjectId(""); setShowForm(false); await load(); }
+      setSaving(false); return;
     }
     const payload = {
       title, description: String(form.get("description") || "").trim() || null,
@@ -168,6 +184,7 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
         <label>Project<select name="project_id" disabled={!selectedClientId} value={selectedProjectId} onChange={e => setSelectedProjectId(e.target.value)}><option value="">No linked project</option>{projects.filter(project => selectedClientId && project.client_id === selectedClientId).map(project => <option key={project.id} value={project.id}>{project.name}</option>)}</select></label>
         <label>Category<input name="category" placeholder="Design, Ads, SEO..."/></label>
       </div>
+      <label className="task-daily-toggle"><input type="checkbox" name="daily_task"/> Daily Task — repeat automatically every day in the assigned person’s morning To-do list</label>
       <button className="primary-action" type="submit" disabled={saving}>{saving ? <Loader2 className="spin" size={16}/> : <Plus size={16}/>} {saving ? "Saving..." : "Create task"}</button>
     </form>}
     {loading ? <div className="task-empty"><Loader2 className="spin" size={22}/> Loading tasks…</div> : filtered.length === 0 ? <div className="task-empty"><CircleCheck size={28}/><b>No tasks here yet</b><span>Create a task to start tracking agency work.</span></div> :
