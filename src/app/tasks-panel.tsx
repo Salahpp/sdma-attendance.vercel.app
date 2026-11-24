@@ -152,11 +152,19 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
     setSaving(false);
   }
 
-  const filtered = filter === "all" ? tasks : tasks.filter((task) => task.status === filter);
+  const todayKey = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date());
+  const filtered = tasks.filter((task) => {
+    if (filter === "all") return true;
+    if (filter === "mine") return task.assigned_to === userId;
+    if (filter === "overdue") return Boolean(task.due_date && task.due_date < todayKey && task.status !== "completed");
+    return task.status === filter;
+  });
   const columns: Array<{ key: Task["status"]; label: string }> = [{key:"todo",label:"To do"},{key:"in_progress",label:"In progress"},{key:"review",label:"Awaiting approval"},{key:"completed",label:"Completed"},{key:"blocked",label:"Blocked"}];
   async function moveTask(task: Task, next: Task["status"]) { if (next === "completed" && !canApprove) { setError("Only the CEO or Team Lead can approve task completion."); return; } if (task.status !== next) await changeStatus(task,next); setDraggingId(null); }
   const counts = {
-    all: tasks.length, todo: tasks.filter(t => t.status === "todo").length,
+    all: tasks.length, mine: tasks.filter(t => t.assigned_to === userId).length,
+    overdue: tasks.filter(t => Boolean(t.due_date && t.due_date < todayKey && t.status !== "completed")).length,
+    todo: tasks.filter(t => t.status === "todo").length,
     in_progress: tasks.filter(t => t.status === "in_progress").length,
     review: tasks.filter(t => t.status === "review").length,
     completed: tasks.filter(t => t.status === "completed").length
@@ -169,7 +177,7 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
       <div className="tasks-actions"><button className="secondary-action" onClick={() => void load()}><RefreshCw size={15}/> Refresh</button>{canAssign && <button className="primary-action" onClick={() => { setShowForm(v => !v); setSelectedClientId(""); setSelectedProjectId(""); }}><Plus size={16}/> New task</button>}</div>
     </div>
     <div className="task-metrics">
-      {(["all","todo","in_progress","review","completed"] as const).map(key => <button key={key} onClick={() => setFilter(key)} className={filter === key ? "task-filter active" : "task-filter"}><span>{key === "all" ? "All tasks" : statusLabels[key]}</span><b>{counts[key]}</b></button>)}
+      {(["all","mine","overdue","todo","in_progress","review","completed"] as const).map(key => <button key={key} onClick={() => setFilter(key)} className={filter === key ? "task-filter active" : "task-filter"}><span>{key === "all" ? "All tasks" : key === "mine" ? "Assigned to me" : key === "overdue" ? "Overdue" : statusLabels[key]}</span><b>{counts[key]}</b></button>)}
     </div>
     {error && <p className="task-alert error">{error}</p>}{success && <p className="task-alert success">{success}</p>}
     {showForm && canAssign && <form className="task-form" onSubmit={createTask}>
@@ -203,7 +211,7 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
               </form>:<>
                 <div className="kanban-card-top"><span className={"priority priority-"+task.priority}>{priorityLabels[task.priority]}</span><span className="kanban-grip">DRAG</span></div>
                 <b className="kanban-task-title">{task.title}</b>{task.description&&<p>{task.description}</p>}
-                <div className="task-meta">{task.client_name&&<span>{task.client_name}</span>}{task.project_name&&<span>{task.project_name}</span>}<span><UserRound size={13}/> {personName(task.assigned_to)}</span>{task.due_date&&<span><CalendarClock size={13}/> {new Date(task.due_date+"T00:00:00").toLocaleDateString("en-IN")}</span>}</div>
+                <div className="task-meta">{task.due_date && task.due_date < todayKey && task.status !== "completed" && <span className="priority priority-urgent">Overdue</span>}{task.client_name&&<span>{task.client_name}</span>}{task.project_name&&<span>{task.project_name}</span>}<span><UserRound size={13}/> {personName(task.assigned_to)}</span>{task.due_date&&<span><CalendarClock size={13}/> {new Date(task.due_date+"T00:00:00").toLocaleDateString("en-IN")}</span>}</div>
                 <div className="kanban-card-actions">{canEdit&&<button type="button" className="secondary-action" onClick={()=>setEditingId(task.id)}><Pencil size={13}/> Edit</button>}
                 {!canApprove&&task.status!=="review"&&task.status!=="completed"&&<button type="button" className="primary-action" onClick={()=>void moveTask(task,"review")}>Submit for approval</button>}
                 {canApprove&&task.status==="review"&&<button type="button" className="primary-action" onClick={()=>void moveTask(task,"completed")}><CircleCheck size={14}/> Approve</button>}</div>
