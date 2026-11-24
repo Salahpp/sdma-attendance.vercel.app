@@ -6,10 +6,10 @@ import { MessageCircle, Send, X, Minus, Users, Loader2 } from "lucide-react";
 type Message={id:string;sender_id:string;message:string;created_at:string};
 type Person={id:string;full_name:string|null};
 export default function TeamChat({userId,fullName}:{userId:string;fullName:string}){
- const db=useMemo(()=>createClient(),[]),[open,setOpen]=useState(true),[messages,setMessages]=useState<Message[]>([]),[people,setPeople]=useState<Person[]>([]),[draft,setDraft]=useState(""),[loading,setLoading]=useState(true),[sending,setSending]=useState(false),[error,setError]=useState("");
+ const db=useMemo(()=>createClient(),[]),[open,setOpen]=useState(false),[messages,setMessages]=useState<Message[]>([]),[people,setPeople]=useState<Person[]>([]),[draft,setDraft]=useState(""),[loading,setLoading]=useState(true),[sending,setSending]=useState(false),[error,setError]=useState("");
  const bottom=useRef<HTMLDivElement>(null);
  const load=useCallback(async()=>{const [m,p]=await Promise.all([(db as any).from("sdma_team_messages").select("*").order("created_at",{ascending:false}).limit(100),db.from("profiles").select("id,full_name").eq("is_active",true)]);if(m.error)setError(m.error.message);else setMessages((m.data||[]).reverse() as Message[]);if(!p.error)setPeople((p.data||[]) as Person[]);setLoading(false)},[db]);
- useEffect(()=>{void load();const channel=db.channel("sdma-team-chat").on("postgres_changes",{event:"INSERT",schema:"public",table:"sdma_team_messages"},payload=>{const row=payload.new as Message;setMessages(old=>old.some(x=>x.id===row.id)?old:[...old,row])}).subscribe();return()=>{void db.removeChannel(channel)}},[db,load]);
+ useEffect(()=>{void load();const channel=db.channel("sdma-team-chat").on("postgres_changes",{event:"INSERT",schema:"public",table:"sdma_team_messages"},payload=>{const row=payload.new as Message;setMessages(old=>old.some(x=>x.id===row.id)?old:[...old,row]);if(row.sender_id!==userId)setOpen(true)}).subscribe();return()=>{void db.removeChannel(channel)}},[db,load]);
  useEffect(()=>{bottom.current?.scrollIntoView({behavior:"smooth"})},[messages,open]);
  async function send(e:FormEvent){e.preventDefault();const message=draft.trim();if(!message||sending)return;setSending(true);setError("");const {error:e1}=await (db as any).from("sdma_team_messages").insert({sender_id:userId,message});if(e1)setError(e1.message);else setDraft("");setSending(false)}
  const time=(v:string)=>new Date(v).toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"});
