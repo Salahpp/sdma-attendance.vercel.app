@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { GraduationCap, Plus, RefreshCw, Loader2, Search, IndianRupee, Users, BookOpen, CalendarCheck } from "lucide-react";
 
 type Row = Record<string, any>;
+type Person = { id: string; full_name: string; role: string };
 const adminRoles=["ceo","operations_manager","office_admin"];
 const tabs=["Overview","Courses","Batches","Enquiries","Students","Fees","Attendance","Internships","Placements"] as const;
 type Tab=typeof tabs[number];
