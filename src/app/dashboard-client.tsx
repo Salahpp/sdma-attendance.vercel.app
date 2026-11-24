@@ -17,6 +17,7 @@ import ReportsPanel from "./reports-panel";
 import AiEnginePanel from "./ai-engine-panel";
 import SettingsPanel from "./settings-panel";
 import AgencyOverview from "./agency-overview";
+import TeamChat from "./team-chat";
 import { visibleModules, type SdmaRole } from "@/lib/auth/roles";
 import {
   Bell, CalendarDays, ChevronDown, CircleHelp, GraduationCap,
@@ -97,5 +98,6 @@ export default function Dashboard({ fullName, role, userId }: { fullName: string
       </div>
       <nav className="mobile-tabbar" aria-label="Primary navigation">{mobilePrimary.filter(label => label === "Overview" || visibleModules(role as SdmaRole).includes(label)).map(label => { const Icon = nav.find(item => item[0] === label)?.[1] ?? LayoutDashboard; return <button key={label} type="button" className={active === label ? "mobile-tab active" : "mobile-tab"} onClick={() => {setActive(label);setNotificationFocus(false);}}><Icon size={19}/><span>{label === "Tasks & Projects" ? "Tasks" : label === "Content Calendar" ? "Content" : label === "Announcements" ? "Updates" : label}</span></button>; })}</nav>
     </section>
+    <TeamChat userId={userId} fullName={fullName}/>
   </main>;
 }
