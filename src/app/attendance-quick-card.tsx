@@ -53,6 +53,12 @@ export default function AttendanceQuickCard({userId,onOpen}:{userId:string;onOpe
    const args={p_lat:position.coords.latitude,p_lng:position.coords.longitude,p_selfie_path:path,p_note:null};
    const result=active?await db.rpc("attendance_check_out",args):await db.rpc("attendance_check_in",args);
    if(result.error)throw new Error("Attendance database save failed: "+result.error.message);
+   // A concurrent/retried check-in may return the already-open session. Remove this retry's unused selfie.
+   const savedSelfiePath=(result.data as {check_in_selfie_path?:string|null}|null)?.check_in_selfie_path;
+   if(!active&&savedSelfiePath&&savedSelfiePath!==path){
+    const cleanup=await db.storage.from("attendance-selfies").remove([path]);
+    if(cleanup.error)console.warn("Duplicate retry selfie cleanup failed:",cleanup.error.message);
+   }
    uploadedPath=null;setMessage(active?"Punch out recorded successfully.":"Punch in recorded successfully.");
    setPhoto(null);if(photoUrl)URL.revokeObjectURL(photoUrl);setPhotoUrl("");setModal(false);await load();
   }catch(e){
