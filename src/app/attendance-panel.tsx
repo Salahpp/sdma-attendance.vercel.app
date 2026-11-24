@@ -55,15 +55,15 @@ export default function AttendancePanel({userId,role}:{userId:string;role:string
       supabase.from("attendance").select("*").eq("user_id",userId).eq("attendance_date",officeDate()).maybeSingle(),
       monthlyQuery
     ]);
-    if(todayResult.error) setError(todayResult.error.message); else setRecord(todayResult.data as AttendanceRow|null);
-    if(monthResult.error) setError(monthResult.error.message); else setMonthRows((monthResult.data??[]) as AttendanceRow[]);
+    if(todayResult.error) setError(todayResult.error.message); else setRecord(todayResult.data as unknown as AttendanceRow|null);
+    if(monthResult.error) setError(monthResult.error.message); else setMonthRows((monthResult.data??[]) as unknown as AttendanceRow[]);
     if(canMonitorTeam){
       const [attendanceResult,peopleResult]=await Promise.all([
         supabase.from("attendance").select("*").eq("attendance_date",officeDate()).order("check_in",{ascending:true}),
         supabase.from("profiles").select("id,full_name,role,is_active").eq("is_active",true).order("full_name")
       ]);
       if(attendanceResult.error)setError(attendanceResult.error.message);else {
-        const rows=(attendanceResult.data??[]) as AttendanceRow[]; setTeamRows(rows);
+        const rows=(attendanceResult.data??[]) as unknown as AttendanceRow[]; setTeamRows(rows);
         const signed=await Promise.all(rows.map(async row=>{const [ci,co]=await Promise.all([row.check_in_selfie_path?supabase.storage.from("attendance-selfies").createSignedUrl(row.check_in_selfie_path,3600):Promise.resolve({data:null}),row.check_out_selfie_path?supabase.storage.from("attendance-selfies").createSignedUrl(row.check_out_selfie_path,3600):Promise.resolve({data:null})]);return [row.id,{checkIn:ci.data?.signedUrl,checkOut:co.data?.signedUrl}] as const;}));
         setSelfieUrls(Object.fromEntries(signed));
       }
