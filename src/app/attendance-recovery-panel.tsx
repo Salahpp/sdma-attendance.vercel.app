@@ -5,7 +5,7 @@ import {RefreshCw,ShieldAlert,Clock3,Loader2} from "lucide-react";
 type Session={id:string;user_id:string;attendance_date:string;check_in:string;check_out:string|null;check_in_note:string|null};
 type Person={id:string;full_name:string;role:string};
 export default function AttendanceRecoveryPanel({role}:{role:string}){
- const db=useMemo(()=>createClient(),[]);
+ const db=useMemo(()=>createClient() as any,[]);
  const allowed=["ceo","operations_manager","team_lead","office_admin"].includes(role);
  const [rows,setRows]=useState<Session[]>([]);const [people,setPeople]=useState<Person[]>([]);
  const [times,setTimes]=useState<Record<string,string>>({});const [reasons,setReasons]=useState<Record<string,string>>({});
