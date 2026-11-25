@@ -55,7 +55,9 @@ export async function POST(request: Request) {
         body: JSON.stringify({ systemInstruction: { parts: [{ text: instructions[mode] }] }, contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig: { temperature: 0.4, maxOutputTokens: 1200 } }),
         signal: controller.signal, cache: "no-store"
       });
-      if (response.status !== 404) break;
+      // Retry with fallback models when the provider reports missing models or transient availability/rate-limit errors.
+      if (response.status !== 404 && response.status !== 429 && response.status < 500) break;
+      if (candidate === models[models.length - 1]) break;
     }
     const data = await response!.json().catch(() => ({}));
     if (!response!.ok) {
