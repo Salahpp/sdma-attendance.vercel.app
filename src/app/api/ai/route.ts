@@ -43,8 +43,9 @@ export async function POST(request: Request) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 25000);
   try {
-    const configuredModel = process.env.GEMINI_MODEL || "gemini-2.5-flash";
-    const models = [configuredModel, ...(configuredModel !== "gemini-2.5-flash" ? ["gemini-2.5-flash"] : []), "gemini-2.0-flash"].filter((m,i,a)=>a.indexOf(m)===i);
+    const configuredModel = process.env.GEMINI_MODEL || "gemini-3.8-flash";
+    // Avoid retired models. Try the configured model, then current supported fallbacks.
+    const models = [configuredModel, "gemini-3.8-flash", "gemini-2.5-flash"].filter((m,i,a)=>a.indexOf(m)===i);
     let response: Response | null = null;
     let model = configuredModel;
     for (const candidate of models) {
