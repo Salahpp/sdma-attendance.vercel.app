@@ -43,23 +43,21 @@ export async function POST(request: Request) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 25000);
   try {
-    const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: instructions[mode] }] },
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.4, maxOutputTokens: 1200 }
-        }),
-        signal: controller.signal,
-        cache: "no-store"
-      }
-    );
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) {
+    const configuredModel = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+    const models = [configuredModel, ...(configuredModel !== "gemini-2.5-flash" ? ["gemini-2.5-flash"] : []), "gemini-2.0-flash"].filter((m,i,a)=>a.indexOf(m)===i);
+    let response: Response | null = null;
+    let model = configuredModel;
+    for (const candidate of models) {
+      model = candidate;
+      response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(candidate)}:generateContent`, {
+        method: "POST", headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+        body: JSON.stringify({ systemInstruction: { parts: [{ text: instructions[mode] }] }, contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig: { temperature: 0.4, maxOutputTokens: 1200 } }),
+        signal: controller.signal, cache: "no-store"
+      });
+      if (response.status !== 404) break;
+    }
+    const data = await response!.json().catch(() => ({}));
+    if (!response!.ok) {
       // Keep provider diagnostics server-side; never return raw provider payloads or secrets.
       const providerMessage = typeof data?.error?.message === "string" ? data.error.message : "";
       const status = response.status;
