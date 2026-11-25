@@ -60,7 +60,7 @@ export async function POST(request: Request) {
     if (!response!.ok) {
       // Keep provider diagnostics server-side; never return raw provider payloads or secrets.
       const providerMessage = typeof data?.error?.message === "string" ? data.error.message : "";
-      const status = response.status;
+      const status = response!.status;
       const failure = status === 429
         ? { error: "Gemini request limit reached. Please wait and try again.", code: "RATE_LIMIT", httpStatus: 429 }
         : status === 400
