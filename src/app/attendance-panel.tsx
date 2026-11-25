@@ -2,7 +2,8 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Camera, MapPin, Clock3, LogIn, LogOut, Loader2, RefreshCw, ShieldCheck, Users } from "lucide-react";\nimport AttendanceRecoveryPanel from "./attendance-recovery-panel";
+import { Camera, MapPin, Clock3, LogIn, LogOut, Loader2, RefreshCw, ShieldCheck, Users } from "lucide-react";
+import AttendanceRecoveryPanel from "./attendance-recovery-panel";
 
 type TeamMember = {id:string;full_name:string;role:string;is_active:boolean};
 type AttendanceRow = {
