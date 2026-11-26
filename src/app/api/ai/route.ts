@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 const ALLOWED_MODES = new Set(["content", "calendar", "task", "report", "campaign", "general"]);
 const MAX_INPUT = 6000;
@@ -40,29 +40,45 @@ export async function POST(request: Request) {
     general: "Act as a careful internal assistant for a digital marketing agency. Be concise, practical and transparent about uncertainty."
   };
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 25000);
   try {
-    const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: instructions[mode] }] },
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.4, maxOutputTokens: 1200 }
-        }),
-        signal: controller.signal,
-        cache: "no-store"
+    const configuredModel = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+    // Stable Flash fallback; continue on model errors, provider 5xx, rate limits and network timeouts.
+    const models = [configuredModel, "gemini-2.5-flash"].filter((m,i,a)=>a.indexOf(m)===i);
+    let response: Response | null = null;
+    let model = configuredModel;
+    let lastFailure: unknown = null;
+    for (const candidate of models) {
+      model = candidate;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 18000);
+      try {
+        response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(candidate)}:generateContent`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: instructions[mode] }] },
+            contents: [{ role: "user", parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.4, maxOutputTokens: 1200 }
+          }),
+          signal: controller.signal,
+          cache: "no-store"
+        });
+        if (response.ok || (response.status < 500 && response.status !== 429 && response.status !== 404)) break;
+      } catch (err) {
+        lastFailure = err;
+      } finally {
+        clearTimeout(timeout);
       }
-    );
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) {
+    }
+    if (!response) {
+      console.error("[AI Engine] All model requests failed", { mode, model, lastFailure: String(lastFailure).slice(0,200) });
+      return NextResponse.json({ error: "AI request timed out or could not connect.", code: "AI_TIMEOUT" }, { status: 502 });
+    }
+    const data = await response!.json().catch(() => ({}));
+    if (!response!.ok) {
       // Keep provider diagnostics server-side; never return raw provider payloads or secrets.
       const providerMessage = typeof data?.error?.message === "string" ? data.error.message : "";
-      const status = response.status;
+      const status = response!.status;
       const failure = status === 429
         ? { error: "Gemini request limit reached. Please wait and try again.", code: "RATE_LIMIT", httpStatus: 429 }
         : status === 400
@@ -87,7 +103,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ text, model, mode });
   } catch {
     return NextResponse.json({ error: "AI request timed out or could not connect." }, { status: 502 });
-  } finally {
-    clearTimeout(timeout);
   }
 }

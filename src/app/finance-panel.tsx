@@ -2,7 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Check, CircleDollarSign, FileText, Loader2, Plus, RefreshCw, Wallet } from "lucide-react";
+import { Check, CircleDollarSign, FileText, Loader2, Plus, RefreshCw, Wallet, ExternalLink } from "lucide-react";
 
 type Expense={id:string;created_by:string|null;expense_date:string;category:string;description:string|null;amount:number;payment_method:string|null;receipt_url:string|null;approval_status:string;payment_status:string;paid_amount:number;created_at:string};
 type Person={id:string;full_name:string;role:string;hourly_rate:number};
@@ -17,6 +17,8 @@ export default function FinancePanel({role,userId}:{role:string;userId:string}){
  const [expenses,setExpenses]=useState<Expense[]>([]),[payroll,setPayroll]=useState<Payroll[]>([]),[people,setPeople]=useState<Person[]>([]);
  const [tab,setTab]=useState<"expenses"|"payroll">("expenses"),[expenseMonth,setExpenseMonth]=useState(monthNow()),[loading,setLoading]=useState(true),[saving,setSaving]=useState(false),[error,setError]=useState(""),[success,setSuccess]=useState("");
  const [showExpense,setShowExpense]=useState(false),[showPayroll,setShowPayroll]=useState(false);
+ const [zohoStatus,setZohoStatus]=useState<{configured:boolean;connected:boolean;organization?:string;setupMissing?:boolean;error?:string}|null>(null);
+ useEffect(()=>{fetch("/api/zoho/status",{cache:"no-store"}).then(r=>r.json()).then(setZohoStatus).catch(()=>setZohoStatus({configured:false,connected:false,error:"Could not check Zoho connection."}));},[]);
  const [category,setCategory]=useState("Office"),[amount,setAmount]=useState(""),[expenseDate,setExpenseDate]=useState(todayIndia()),[description,setDescription]=useState(""),[paymentMethod,setPaymentMethod]=useState("Bank transfer"),[receipt,setReceipt]=useState<File|null>(null);
  const [personId,setPersonId]=useState(""),[month,setMonth]=useState(monthNow()),[base,setBase]=useState(""),[allowances,setAllowances]=useState("0"),[bonus,setBonus]=useState("0"),[deductions,setDeductions]=useState("0"),[advance,setAdvance]=useState("0"),[notes,setNotes]=useState("");
  const load=useCallback(async()=>{
@@ -81,6 +83,10 @@ export default function FinancePanel({role,userId}:{role:string;userId:string}){
  }
  const personName=(id:string)=>people.find(p=>p.id===id)?.full_name||"Staff member";
  return <div className="finance-workspace">
+  <section className="finance-list" style={{padding:18,marginBottom:16,border:"1px solid var(--border)"}}>
+   <div className="panel-head"><div><h3>Zoho Books</h3><p>Connect your accounting workspace to bring reports into SDMA Office OS.</p></div><ExternalLink size={18}/></div>
+   {zohoStatus===null?<p>Checking connection…</p>:zohoStatus.connected?<div className="finance-alert success">Connected to {zohoStatus.organization||"Zoho Books"} · Reports integration phase is next.</div>:<div><div className="finance-alert">{zohoStatus.setupMissing||!zohoStatus.configured?"Zoho OAuth setup is pending. Add the OAuth environment variables in Vercel before connecting.":"Zoho Books is not connected yet."}</div><button className="primary-action" disabled={!zohoStatus.configured||zohoStatus.setupMissing} onClick={()=>window.location.assign("/api/zoho/connect")}>Connect Zoho Books</button></div>}
+  </section>
   <div className="finance-kpis">
    <article><span>Approved expenses</span><b>{money(totalExpenses)}</b><small>Selected month</small></article>
    <article><span>Pending expenses</span><b>{money(pendingExpenses)}</b><small>Selected month</small></article>

@@ -3,6 +3,7 @@
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Camera, MapPin, Clock3, LogIn, LogOut, Loader2, RefreshCw, ShieldCheck, Users } from "lucide-react";
+import AttendanceRecoveryPanel from "./attendance-recovery-panel";
 
 type TeamMember = {id:string;full_name:string;role:string;is_active:boolean};
 type AttendanceRow = {
@@ -233,7 +234,7 @@ export default function AttendancePanel({userId,role}:{userId:string;role:string
     {loading&&<div className="task-empty"><Loader2 className="spin" size={20}/> Loading attendance…</div>}
     {error&&<p className="task-alert error">{error}</p>}{message&&<p className="task-alert success">{message}</p>}
     {canMonitorTeam&&<section className="team-attendance"><div className="panel-head"><div><h3>Team attendance</h3><p>Today’s check-in status across active staff</p></div><Users size={18}/></div><div className="team-attendance-list">{teamMembers.map(person=>{const row=teamRows.find(r=>r.user_id===person.id);return <article key={person.id}><div className="team-person"><b>{person.full_name||"Staff member"}</b><small>{person.role.replaceAll("_"," ")}</small></div><span className={row?.check_in?(row.check_out?"staff-status active":"attendance-live"):"attendance-pending"}>{row?.check_out?"Completed":row?.check_in?"Working":"Not checked in"}</span><time>In: {timeLabel(row?.check_in||null)} · {row?.check_in?(row.check_in_location_type==="office"?"Work From Office":"Work From Out of Office"):"—"}</time><time>Out: {timeLabel(row?.check_out||null)} · {row?.check_out?(row.check_out_location_type==="office"?"Work From Office":"Work From Out of Office"):"—"}</time><div className="attendance-selfie-pair">{selfieUrls[row?.id||""]?.checkIn&&<a href={selfieUrls[row!.id]?.checkIn} target="_blank" rel="noreferrer"><img src={selfieUrls[row!.id]?.checkIn} alt={person.full_name+" check-in selfie"}/><small>Check-in selfie</small></a>}{selfieUrls[row?.id||""]?.checkOut&&<a href={selfieUrls[row!.id]?.checkOut} target="_blank" rel="noreferrer"><img src={selfieUrls[row!.id]?.checkOut} alt={person.full_name+" check-out selfie"}/><small>Check-out selfie</small></a>}</div>{row?.check_in_lat!=null&&<a className="attendance-location-link" href={"https://maps.google.com/?q="+row.check_in_lat+","+row.check_in_lng} target="_blank" rel="noreferrer">View GPS location</a>}</article>;})}</div></section>}
-    <section className="team-reports attendance-monthly">
+    {canMonitorTeam&&<AttendanceRecoveryPanel role={role}/>}\n    <section className="team-reports attendance-monthly">
       <div className="panel-head"><div><h3>Monthly attendance report</h3><p>{canMonitorTeam?"Team attendance and manager corrections":"Your monthly attendance history"}</p></div><label>Month<input type="month" value={month} onChange={e=>{if(e.target.value)setMonth(e.target.value)}}/></label></div>
       <div className="client-summary">
         <div><span>Recorded days</span><b>{monthRows.length}</b></div>
