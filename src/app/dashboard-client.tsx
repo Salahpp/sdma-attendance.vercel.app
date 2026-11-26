@@ -62,15 +62,55 @@ export default function Dashboard({ fullName, role, userId }: { fullName: string
     const supabase = createClient();
     let newest = new Date().toISOString();
     let enabled = false;
-    const enable = () => { enabled = true; };
-    window.addEventListener("pointerdown", enable, { once: true });
-    window.addEventListener("keydown", enable, { once: true });
-    const check = async () => {
-      const { data } = await supabase.from("notifications").select("id,created_at,title").eq("user_id", userId).eq("notification_type", "task_assignment").gt("created_at", newest).order("created_at", { ascending: true });
-      if (data?.length) { newest = data[data.length - 1].created_at; if (enabled && audioRef.current) { try { audioRef.current.currentTime = 0; await audioRef.current.play(); } catch { /* playback requires browser permission/gesture */ } } }
+    let busy = false;
+    const playSound = async () => {
+      const audio = audioRef.current;
+      if (!enabled || !audio) return;
+      try { audio.muted = false; audio.currentTime = 0; await audio.play(); }
+      catch (error) { console.warn("Task assignment sound playback failed:", error); }
     };
+    const unlock = async () => {
+      if (enabled) return;
+      enabled = true;
+      const audio = audioRef.current;
+      if (!audio) return;
+      try {
+        audio.muted = true;
+        await audio.play();
+        audio.pause();
+        audio.currentTime = 0;
+        audio.muted = false;
+      } catch (error) { console.warn("Audio unlock failed:", error); }
+    };
+    window.addEventListener("pointerdown", unlock, { once: true });
+    window.addEventListener("keydown", unlock, { once: true });
+    const check = async () => {
+      if (busy) return;
+      busy = true;
+      try {
+        const { data, error } = await supabase.from("notifications").select("id,created_at,title").eq("user_id", userId).eq("notification_type", "task_assignment").gt("created_at", newest).order("created_at", { ascending: true });
+        if (error) console.warn("Task assignment notification query failed:", error);
+        if (data?.length) {
+          newest = data[data.length - 1].created_at;
+          await playSound();
+        }
+      } finally { busy = false; }
+    };
+    const channel = supabase.channel("task-assignment-notifications-" + userId)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: "user_id=eq." + userId }, (payload) => {
+        const row = payload.new as { notification_type?: string; created_at?: string };
+        if (row.notification_type === "task_assignment" && row.created_at && row.created_at > newest) {
+          newest = row.created_at;
+          void playSound();
+        }
+      }).subscribe((status) => { if (status === "CHANNEL_ERROR") console.warn("Notification realtime subscription error"); });
     const interval = window.setInterval(() => { void check(); }, 15000);
-    return () => { window.clearInterval(interval); window.removeEventListener("pointerdown", enable); window.removeEventListener("keydown", enable); };
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("pointerdown", unlock);
+      window.removeEventListener("keydown", unlock);
+      void supabase.removeChannel(channel);
+    };
   }, [userId]);
   const [notificationFocus, setNotificationFocus] = useState(false);
   const visibleNav = nav.filter(([label]) => visibleModules(role as SdmaRole).includes(label));
