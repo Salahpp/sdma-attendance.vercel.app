@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 const ALLOWED_MODES = new Set(["content", "calendar", "task", "report", "campaign", "general"]);
 const MAX_INPUT = 6000;
@@ -40,8 +40,6 @@ export async function POST(request: Request) {
     general: "Act as a careful internal assistant for a digital marketing agency. Be concise, practical and transparent about uncertainty."
   };
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 25000);
   try {
     const configuredModel = process.env.GEMINI_MODEL || "gemini-3.8-flash";
     // Avoid retired models. Try the configured model, then current supported fallbacks.
@@ -50,6 +48,9 @@ export async function POST(request: Request) {
     let model = configuredModel;
     for (const candidate of models) {
       model = candidate;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 18000);
+      try {
       response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(candidate)}:generateContent`, {
         method: "POST", headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
         body: JSON.stringify({ systemInstruction: { parts: [{ text: instructions[mode] }] }, contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig: { temperature: 0.4, maxOutputTokens: 1200 } }),
@@ -88,7 +89,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ text, model, mode });
   } catch {
     return NextResponse.json({ error: "AI request timed out or could not connect." }, { status: 502 });
-  } finally {
-    clearTimeout(timeout);
   }
 }
