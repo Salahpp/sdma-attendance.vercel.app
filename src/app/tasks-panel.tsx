@@ -101,7 +101,7 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
     const { data, error: insertError } = await supabase.from("tasks").insert(payload).select("id").single();
     if (insertError) setError(insertError.message);
     else {
-      if (data?.id) await supabase.from("task_activity").insert({ task_id: data.id, actor_id: userId, action: "created", details: { title } });
+      if (data?.id) {\n        await supabase.from("task_activity").insert({ task_id: data.id, actor_id: userId, action: "created", details: { title } });\n        const recipient = payload.assigned_to;\n        if (recipient && recipient !== userId) await supabase.from("notifications").insert({ user_id: recipient, title: "New task assigned: " + title, body: payload.description || "A new task has been assigned to you.", notification_type: "task_assignment", action_url: "/dashboard" });\n      }
       setSuccess("Task created successfully."); formElement.reset(); setSelectedClientId(""); setSelectedProjectId(""); setShowForm(false); await load();
     }
     setSaving(false);
