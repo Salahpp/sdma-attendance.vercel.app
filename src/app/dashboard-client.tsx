@@ -9,7 +9,7 @@ import DailyReportsPanel from "./daily-reports-panel";
 import LeavePanel from "./leave-panel";
 import ContentCalendarPanel from "./content-calendar-panel";
 import AdsLeadsPanel from "./ads-leads-panel";
-import FinancePanel from "./finance-panel";
+import FinancePanel from "./finance-panel";\nimport AccountsPanel from "./accounts-panel";
 import AcademyPanel from "./academy-panel";
 import HrReportsPanel from "./hr-reports-panel";
 import AnnouncementsPanel from "./announcements-panel";
@@ -22,7 +22,7 @@ import { visibleModules, type SdmaRole } from "@/lib/auth/roles";
 import {
   Bell, CalendarDays, ChevronDown, CircleHelp, GraduationCap,
   ClipboardList, Clock3, FileBarChart2, LayoutDashboard, Menu, MessageSquareText,
-  Search, Settings, ShieldCheck, Users, Wallet, X, Megaphone, Sparkles
+  Search, Settings, ShieldCheck, Users, Wallet, X, Megaphone, Sparkles, CircleDollarSign
 } from "lucide-react";
 
 const nav = [
@@ -30,7 +30,7 @@ const nav = [
   ["Clients & CRM", Users], ["Content Calendar", CalendarDays],
   ["Ads & Leads", Megaphone], ["Attendance", Clock3],
   ["Daily Reports", FileBarChart2], ["Leave Management", CalendarDays], ["Team & Roles", ShieldCheck],
-  ["Finance & Payroll", Wallet], ["Academy Management", GraduationCap], ["HR Reports", Users], ["Reports & Documents", FileBarChart2], ["AI Engine", Sparkles], ["Announcements", MessageSquareText]
+  ["Accounts", CircleDollarSign], ["Finance & Payroll", Wallet], ["Academy Management", GraduationCap], ["HR Reports", Users], ["Reports & Documents", FileBarChart2], ["AI Engine", Sparkles], ["Announcements", MessageSquareText]
 ] as const;
 
 const mobilePrimary = ["Overview", "Tasks & Projects", "Attendance", "Content Calendar", "Announcements"] as const;
@@ -42,7 +42,7 @@ const modules = [
   ["Clients & CRM", "Accounts, services and projects", Users, "blue"],
   ["Content Calendar", "Plan, approve and publish content", CalendarDays, "purple"],
   ["Ads & Leads", "Campaign performance and lead flow", Megaphone, "orange"],
-  ["Finance & Payroll", "Expenses, approvals and salary records", Wallet, "green"],
+  ["Accounts", "Client payments, collections and financial reports", CircleDollarSign, "green"],
   ["Academy Management", "Students, admissions, batches and fee collection", GraduationCap, "blue"],
   ["HR Reports", "Staff activity, hours and performance", Users, "slate"],
   ["Reports & Documents", "Client performance summaries and PDF export", FileBarChart2, "slate"],
@@ -81,7 +81,7 @@ export default function Dashboard({ fullName, role, userId }: { fullName: string
           : active === "Leave Management" ? <LeavePanel userId={userId} role={role} />
           : active === "Content Calendar" ? <ContentCalendarPanel role={role} userId={userId} />
           : active === "Ads & Leads" ? <AdsLeadsPanel role={role} userId={userId} />
-          : active === "Finance & Payroll" ? <FinancePanel role={role} userId={userId} />
+          : active === "Accounts" ? <AccountsPanel role={role} />\n          : active === "Finance & Payroll" ? <FinancePanel role={role} userId={userId} />
           : active === "Academy Management" ? <AcademyPanel role={role} userId={userId} />
           : active === "HR Reports" ? <HrReportsPanel userId={userId} role={role} />
           : active === "Reports & Documents" ? <ReportsPanel />
