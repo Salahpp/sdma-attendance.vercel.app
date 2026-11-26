@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { createClient } from "@/lib/supabase/client";
 import TasksPanel from "./tasks-panel";
 import StaffPanel from "./staff-panel";
 import AttendancePanel from "./attendance-panel";
@@ -56,12 +57,14 @@ const modules = [
 
 export default function Dashboard({ fullName, role, userId }: { fullName: string; role: string; userId: string }) {
   const [active, setActive] = useState("Overview");
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  useEffect(() => {\n    const supabase = createClient();\n    let newest = new Date().toISOString();\n    let enabled = false;\n    const enable = () => { enabled = true; };\n    window.addEventListener("pointerdown", enable, { once: true });\n    window.addEventListener("keydown", enable, { once: true });\n    const check = async () => {\n      const { data } = await supabase.from("notifications").select("id,created_at,title").eq("user_id", userId).eq("notification_type", "task_assignment").gt("created_at", newest).order("created_at", { ascending: true });\n      if (data?.length) { newest = data[data.length - 1].created_at; if (enabled && audioRef.current) { try { audioRef.current.currentTime = 0; await audioRef.current.play(); } catch { /* playback requires browser permission/gesture */ } } }\n    };\n    const interval = window.setInterval(() => { void check(); }, 15000);\n    return () => { window.clearInterval(interval); window.removeEventListener("pointerdown", enable); window.removeEventListener("keydown", enable); };\n  }, [userId]);
   const [notificationFocus, setNotificationFocus] = useState(false);
   const visibleNav = nav.filter(([label]) => visibleModules(role as SdmaRole).includes(label));
   const roleLabel = role === "ceo" ? "CEO & Founder" : role === "operations_manager" ? "Operations Manager" : role === "team_lead" ? "Team Leader" : role.replaceAll("_", " ");
   const [open, setOpen] = useState(false);
 
-  return <main className="shell">
+  return <main className="shell">\n    <audio ref={audioRef} src="/task-assignment-tune.mpeg" preload="auto" />
     <aside className={open ? "sidebar open" : "sidebar"}>
       <div className="brand"><svg viewBox="0 0 1200 430" role="img" aria-label="Shah Digital Marketing Agency" xmlns="http://www.w3.org/2000/svg"><rect width="1200" height="430" rx="8" fill="#050505"/><g fontFamily="Arial, Helvetica, sans-serif" fontWeight="900"><text x="35" y="220" fontSize="250" letterSpacing="-15" fill="#fff">SHAH</text><circle cx="1120" cy="105" r="42" fill="#e31e24"/><text x="40" y="300" fontSize="66" letterSpacing="21" fill="#fff">DIGITAL MARKETING</text><path d="M40 365H145 M1055 365H1160" stroke="#e31e24" strokeWidth="8"/><text x="175" y="390" fontSize="60" letterSpacing="3" fill="#e31e24">AGENCY &amp; ACADEMY</text></g></svg><button className="close-menu" onClick={() => setOpen(false)} aria-label="Close menu"><X size={18}/></button></div>
       <div className="workspace"><span className="workspace-icon">SD</span><div><b>Shah Digital</b><small>Agency workspace</small></div><ChevronDown size={15}/></div>
