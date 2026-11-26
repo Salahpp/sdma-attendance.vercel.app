@@ -51,14 +51,23 @@ export async function POST(request: Request) {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 18000);
       try {
-      response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(candidate)}:generateContent`, {
-        method: "POST", headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
-        body: JSON.stringify({ systemInstruction: { parts: [{ text: instructions[mode] }] }, contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig: { temperature: 0.4, maxOutputTokens: 1200 } }),
-        signal: controller.signal, cache: "no-store"
-      });
-      // Retry with fallback models when the provider reports missing models or transient availability/rate-limit errors.
-      if (response.status !== 404 && response.status !== 429 && response.status < 500) break;
-      if (candidate === models[models.length - 1]) break;
+        response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(candidate)}:generateContent`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: instructions[mode] }] },
+            contents: [{ role: "user", parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.4, maxOutputTokens: 1200 }
+          }),
+          signal: controller.signal,
+          cache: "no-store"
+        });
+        // Fall through to another model for missing models, rate limits and transient provider errors.
+        if (response.status !== 404 && response.status !== 429 && response.status < 500) break;
+        if (candidate === models[models.length - 1]) break;
+      } finally {
+        clearTimeout(timeout);
+      }
     }
     const data = await response!.json().catch(() => ({}));
     if (!response!.ok) {
