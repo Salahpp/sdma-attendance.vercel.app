@@ -41,11 +41,12 @@ export async function POST(request: Request) {
   };
 
   try {
-    const configuredModel = process.env.GEMINI_MODEL || "gemini-3.8-flash";
-    // Avoid retired models. Try the configured model, then current supported fallbacks.
-    const models = [configuredModel, "gemini-3.8-flash", "gemini-2.5-flash"].filter((m,i,a)=>a.indexOf(m)===i);
+    const configuredModel = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+    // Stable Flash fallback; continue on model errors, provider 5xx, rate limits and network timeouts.
+    const models = [configuredModel, "gemini-2.5-flash"].filter((m,i,a)=>a.indexOf(m)===i);
     let response: Response | null = null;
     let model = configuredModel;
+    let lastFailure: unknown = null;
     for (const candidate of models) {
       model = candidate;
       const controller = new AbortController();
@@ -62,12 +63,16 @@ export async function POST(request: Request) {
           signal: controller.signal,
           cache: "no-store"
         });
-        // Fall through to another model for missing models, rate limits and transient provider errors.
-        if (response.status !== 404 && response.status !== 429 && response.status < 500) break;
-        if (candidate === models[models.length - 1]) break;
+        if (response.ok || (response.status < 500 && response.status !== 429 && response.status !== 404)) break;
+      } catch (err) {
+        lastFailure = err;
       } finally {
         clearTimeout(timeout);
       }
+    }
+    if (!response) {
+      console.error("[AI Engine] All model requests failed", { mode, model, lastFailure: String(lastFailure).slice(0,200) });
+      return NextResponse.json({ error: "AI request timed out or could not connect.", code: "AI_TIMEOUT" }, { status: 502 });
     }
     const data = await response!.json().catch(() => ({}));
     if (!response!.ok) {
