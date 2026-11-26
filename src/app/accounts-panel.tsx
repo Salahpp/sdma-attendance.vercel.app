@@ -7,11 +7,11 @@ type Payment={id:string;client_id:string;description:string;amount:number;due_da
 const money=(n:number)=>new Intl.NumberFormat("en-IN",{style:"currency",currency:"INR",maximumFractionDigits:0}).format(n||0);
 const today=()=>new Date().toLocaleDateString("en-CA",{timeZone:"Asia/Kolkata"});
 export default function AccountsPanel({role}:{role:string}){
- const supabase=useMemo(()=>createClient(),[]);
+ const supabase=useMemo(()=>createClient(),[]); const db=supabase as any;
  const [clients,setClients]=useState<Client[]>([]);const [rows,setRows]=useState<Payment[]>([]);
  const [loading,setLoading]=useState(true);const [error,setError]=useState("");const [notice,setNotice]=useState("");
  const [showForm,setShowForm]=useState(false);const [clientId,setClientId]=useState("");const [desc,setDesc]=useState("Monthly service fee");const [amount,setAmount]=useState("");const [due,setDue]=useState(today());const [invoice,setInvoice]=useState("");const [paid,setPaid]=useState("0");
- const load=useCallback(async()=>{setLoading(true);const [c,p]=await Promise.all([supabase.from("clients").select("id,name,phone").order("name"),supabase.from("client_payment_schedule").select("*").order("due_date",{ascending:true})]);if(c.error||p.error)setError(c.error?.message||p.error?.message||"Load failed");else{setClients(c.data||[]);setRows((p.data||[]) as Payment[])}setLoading(false)},[supabase]);
+ const load=useCallback(async()=>{setLoading(true);const [c,p]=await Promise.all([supabase.from("clients").select("id,name,phone").order("name"),db.from("client_payment_schedule").select("*").order("due_date",{ascending:true})]);if(c.error||p.error)setError(c.error?.message||p.error?.message||"Load failed");else{setClients(c.data||[]);setRows((p.data||[]) as Payment[])}setLoading(false)},[supabase]);
  useEffect(()=>{void load()},[load]);
  const normalized=rows.map(r=>({...r,status:r.paid_amount>=r.amount?"paid":r.paid_amount>0?"partial":r.due_date<today()?"overdue":"pending"}));
  const upcoming=normalized.filter(r=>r.status!=="paid"&&r.due_date>=today()&&r.due_date<=new Date(Date.now()+30*86400000).toLocaleDateString("en-CA",{timeZone:"Asia/Kolkata"}));
