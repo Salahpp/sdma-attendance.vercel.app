@@ -1,12 +1,12 @@
 "use client";
-import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { MessageCircle, Send, Minus, Users, Loader2, Bell } from "lucide-react";
 
 type Message={id:string;sender_id:string;message:string;created_at:string};
 type Person={id:string;full_name:string|null};
 const mentionToken=(p:Person)=>`@[${p.full_name||"Team member"}](${p.id})`;
-function bellSound(){try{const Ctx=window.AudioContext||((window as any).webkitAudioContext);if(!Ctx)return;const ctx=new Ctx();[880,1174.66,1568].forEach((freq,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type="sine";o.frequency.value=freq; o.connect(g);g.connect(ctx.destination);const start=ctx.currentTime+i*.07;g.gain.setValueAtTime(.001,start);g.gain.exponentialRampToValueAtTime(.09,start+.015);g.gain.exponentialRampToValueAtTime(.001,start+.65);o.start(start);o.stop(start+.68);});}catch{}}
+function bellSound(){try{const Ctx=window.AudioContext||((window as any).webkitAudioContext);if(!Ctx)return;const ctx=new Ctx();[880,1174.66,1568].forEach((freq,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type="sine";o.frequency.value=freq; o.connect(g);g.connect(ctx.destination);const start=ctx.currentTime+i*.07;g.gain.setValueAtTime(.001,start);g.gain.exponentialRampToValueAtTime(.24,start+.015);g.gain.exponentialRampToValueAtTime(.001,start+.65);o.start(start);o.stop(start+.68);});}catch{}}
 function renderMessage(s:string,people:Person[]){const re=/@\[([^\]]+)\]\(([^)]+)\)/g;const parts=[];let last=0,m;while((m=re.exec(s))){if(m.index>last)parts.push(s.slice(last,m.index));parts.push(<span key={m.index} style={{background:"#fef3c7",color:"#92400e",borderRadius:5,padding:"1px 4px",fontWeight:700}}>@{people.find(p=>p.id===m[2])?.full_name||m[1]}</span>);last=re.lastIndex;}if(last<s.length)parts.push(s.slice(last));return parts;}
 export default function TeamChat({userId,fullName}:{userId:string;fullName:string}){
  const db=useMemo(()=>createClient(),[]),[open,setOpen]=useState(false),[unread,setUnread]=useState(0),[messages,setMessages]=useState<Message[]>([]),[people,setPeople]=useState<Person[]>([]),[draft,setDraft]=useState(""),[loading,setLoading]=useState(true),[sending,setSending]=useState(false),[error,setError]=useState(""),[mentionQuery,setMentionQuery]=useState<string|null>(null);
