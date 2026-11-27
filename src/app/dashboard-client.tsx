@@ -9,14 +9,16 @@ import DailyReportsPanel from "./daily-reports-panel";
 import LeavePanel from "./leave-panel";
 import ContentCalendarPanel from "./content-calendar-panel";
 import AdsLeadsPanel from "./ads-leads-panel";
-import FinancePanel from "./finance-panel";\nimport AccountsPanel from "./accounts-panel";\nimport StaffScoreboard from "./staff-scoreboard";
+import FinancePanel from "./finance-panel";
+import AccountsPanel from "./accounts-panel";
+import StaffScoreboard from "./staff-scoreboard";
 import AcademyPanel from "./academy-panel";
 import HrReportsPanel from "./hr-reports-panel";
 import AnnouncementsPanel from "./announcements-panel";
 import ReportsPanel from "./reports-panel";
 import AiEnginePanel from "./ai-engine-panel";
 import SettingsPanel from "./settings-panel";
-import AgencyOverview from "./agency-overview";\nimport TeamChat from "./team-chat";
+import AgencyOverview from "./agency-overview";
 import TeamChat from "./team-chat";
 import { visibleModules, type SdmaRole } from "@/lib/auth/roles";
 import {
@@ -42,7 +44,9 @@ const modules = [
   ["Clients & CRM", "Accounts, services and projects", Users, "blue"],
   ["Content Calendar", "Plan, approve and publish content", CalendarDays, "purple"],
   ["Ads & Leads", "Campaign performance and lead flow", Megaphone, "orange"],
-  ["Finance & Payroll", "Expenses, approvals and salary records", Wallet, "green"],\n  ["Accounts", "Zoho Books and financial reports", BookOpen, "blue"],\n  ["Staff Scoreboard", "Monthly team performance", Trophy, "orange"],
+  ["Finance & Payroll", "Expenses, approvals and salary records", Wallet, "green"],
+  ["Accounts", "Zoho Books and financial reports", BookOpen, "blue"],
+  ["Staff Scoreboard", "Monthly team performance", Trophy, "orange"],
   ["Academy Management", "Students, admissions, batches and fee collection", GraduationCap, "blue"],
   ["HR Reports", "Staff activity, hours and performance", Users, "slate"],
   ["Reports & Documents", "Client performance summaries and PDF export", FileBarChart2, "slate"],
@@ -81,7 +85,9 @@ export default function Dashboard({ fullName, role, userId }: { fullName: string
           : active === "Leave Management" ? <LeavePanel userId={userId} role={role} />
           : active === "Content Calendar" ? <ContentCalendarPanel role={role} userId={userId} />
           : active === "Ads & Leads" ? <AdsLeadsPanel role={role} userId={userId} />
-          : active === "Finance & Payroll" ? <FinancePanel role={role} userId={userId} />\n          : active === "Accounts" ? <AccountsPanel role={role} />\n          : active === "Staff Scoreboard" ? <StaffScoreboard userId={userId} />
+          : active === "Finance & Payroll" ? <FinancePanel role={role} userId={userId} />
+          : active === "Accounts" ? <AccountsPanel role={role} />
+          : active === "Staff Scoreboard" ? <StaffScoreboard userId={userId} />
           : active === "Academy Management" ? <AcademyPanel role={role} userId={userId} />
           : active === "HR Reports" ? <HrReportsPanel userId={userId} role={role} />
           : active === "Reports & Documents" ? <ReportsPanel />
