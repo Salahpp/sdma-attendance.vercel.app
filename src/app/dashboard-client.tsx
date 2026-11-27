@@ -9,14 +9,14 @@ import DailyReportsPanel from "./daily-reports-panel";
 import LeavePanel from "./leave-panel";
 import ContentCalendarPanel from "./content-calendar-panel";
 import AdsLeadsPanel from "./ads-leads-panel";
-import FinancePanel from "./finance-panel";
+import FinancePanel from "./finance-panel";\nimport AccountsPanel from "./accounts-panel";
 import AnnouncementsPanel from "./announcements-panel";
 import AgencyOverview from "./agency-overview";
 import { visibleModules, type SdmaRole } from "@/lib/auth/roles";
 import {
   Bell, CalendarDays, ChevronDown, CircleHelp,
   ClipboardList, Clock3, FileBarChart2, LayoutDashboard, Menu, MessageSquareText,
-  Search, Settings, ShieldCheck, Users, Wallet, X, Megaphone
+  Search, Settings, ShieldCheck, Users, Wallet, X, Megaphone, BookOpen
 } from "lucide-react";
 
 const nav = [
@@ -24,7 +24,7 @@ const nav = [
   ["Clients & CRM", Users], ["Content Calendar", CalendarDays],
   ["Ads & Leads", Megaphone], ["Attendance", Clock3],
   ["Daily Reports", FileBarChart2], ["Leave Management", CalendarDays], ["Team & Roles", ShieldCheck],
-  ["Finance & Payroll", Wallet], ["Announcements", MessageSquareText]
+  ["Finance & Payroll", Wallet], ["Accounts", BookOpen], ["Announcements", MessageSquareText]
 ] as const;
 
 const modules = [
@@ -32,7 +32,7 @@ const modules = [
   ["Clients & CRM", "Accounts, services and projects", Users, "blue"],
   ["Content Calendar", "Plan, approve and publish content", CalendarDays, "purple"],
   ["Ads & Leads", "Campaign performance and lead flow", Megaphone, "orange"],
-  ["Finance & Payroll", "Expenses, approvals and salary records", Wallet, "green"],
+  ["Finance & Payroll", "Expenses, approvals and salary records", Wallet, "green"],\n  ["Accounts", "Zoho Books and financial reports", BookOpen, "blue"],
   ["Attendance", "Selfie, GPS and work hours", Clock3, "green"],
   ["Daily Reports", "Morning and evening updates", FileBarChart2, "slate"],
   ["Leave Management", "Apply and review leave requests", CalendarDays, "green"],
@@ -67,7 +67,7 @@ export default function Dashboard({ fullName, role, userId }: { fullName: string
           : active === "Leave Management" ? <LeavePanel userId={userId} role={role} />
           : active === "Content Calendar" ? <ContentCalendarPanel role={role} userId={userId} />
           : active === "Ads & Leads" ? <AdsLeadsPanel role={role} userId={userId} />
-          : active === "Finance & Payroll" ? <FinancePanel role={role} userId={userId} />
+          : active === "Finance & Payroll" ? <FinancePanel role={role} userId={userId} />\n          : active === "Accounts" ? <AccountsPanel role={role} />
           : active === "Announcements" ? <AnnouncementsPanel role={role} userId={userId} defaultTab={notificationFocus ? "notifications" : "announcements"} />
           : active === "Overview" ? <>
             <AgencyOverview role={role} userId={userId} onOpenAttendance={() => setActive("Attendance")} />
