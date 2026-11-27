@@ -24,9 +24,9 @@ export function canManageAds(role: SdmaRole) {
 }
 
 export function visibleModules(role: SdmaRole) {
-  const common = ["Overview", "Tasks & Projects", "Attendance", "Daily Reports", "Leave Management", "Announcements"];
+  const common = ["Overview", "Tasks & Projects", "Attendance", "Daily Reports", "Leave Management", "Announcements", "AI Engine"];
   if (role === "staff" || role === "marketer" || role === "designer") return [...common, "Content Calendar"];
-  if (role === "team_lead" || role === "office_admin") return [...common, "Clients & CRM", "Content Calendar", "Ads & Leads", "Team & Roles"];
-  if (role === "accounts") return [...common, "Clients & CRM", "Finance & Payroll", "Accounts"];
-  return [...common, "Clients & CRM", "Content Calendar", "Ads & Leads", "Team & Roles", "Finance & Payroll", "Accounts"];
+  if (role === "team_lead") return [...common, "Clients & CRM", "Content Calendar", "Ads & Leads", "Team & Roles", "Staff Scoreboard", "Reports & Documents"];\n  if (role === "office_admin") return [...common, "Clients & CRM", "Content Calendar", "Ads & Leads", "Team & Roles", "Academy Management", "HR Reports", "Reports & Documents"];
+  if (role === "accounts") return [...common, "Clients & CRM", "Finance & Payroll", "Accounts", "Reports & Documents"];
+  return [...common, "Clients & CRM", "Content Calendar", "Ads & Leads", "Team & Roles", "Finance & Payroll", "Accounts", "Staff Scoreboard", "Academy Management", "HR Reports", "Reports & Documents"];
 }
