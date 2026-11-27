@@ -10,6 +10,7 @@ import LeavePanel from "./leave-panel";
 import ContentCalendarPanel from "./content-calendar-panel";
 import AdsLeadsPanel from "./ads-leads-panel";
 import FinancePanel from "./finance-panel";
+import OfficeExpensePanel from "./office-expense-panel";
 import AccountsPanel from "./accounts-panel";
 import StaffScoreboard from "./staff-scoreboard";
 import AcademyPanel from "./academy-panel";
@@ -32,7 +33,7 @@ const nav = [
   ["Clients & CRM", Users], ["Content Calendar", CalendarDays],
   ["Ads & Leads", Megaphone], ["Attendance", Clock3],
   ["Daily Reports", FileBarChart2], ["Leave Management", CalendarDays], ["Team & Roles", ShieldCheck],
-  ["Finance & Payroll", Wallet], ["Accounts", BookOpen], ["Staff Scoreboard", Trophy], ["Academy Management", GraduationCap], ["HR Reports", Users], ["Reports & Documents", FileBarChart2], ["AI Engine", Sparkles], ["Announcements", MessageSquareText]
+  ["Finance & Payroll", Wallet], ["Office Expenses", Wallet], ["Accounts", BookOpen], ["Staff Scoreboard", Trophy], ["Academy Management", GraduationCap], ["HR Reports", Users], ["Reports & Documents", FileBarChart2], ["AI Engine", Sparkles], ["Announcements", MessageSquareText]
 ] as const;
 
 const mobilePrimary = ["Overview", "Tasks & Projects", "Attendance", "Content Calendar", "Announcements"] as const;
@@ -45,6 +46,7 @@ const modules = [
   ["Content Calendar", "Plan, approve and publish content", CalendarDays, "purple"],
   ["Ads & Leads", "Campaign performance and lead flow", Megaphone, "orange"],
   ["Finance & Payroll", "Expenses, approvals and salary records", Wallet, "green"],
+  ["Office Expenses", "Submit office spending for approval", Wallet, "orange"],
   ["Accounts", "Zoho Books and financial reports", BookOpen, "blue"],
   ["Staff Scoreboard", "Monthly team performance", Trophy, "orange"],
   ["Academy Management", "Students, admissions, batches and fee collection", GraduationCap, "blue"],
@@ -86,6 +88,7 @@ export default function Dashboard({ fullName, role, userId }: { fullName: string
           : active === "Content Calendar" ? <ContentCalendarPanel role={role} userId={userId} />
           : active === "Ads & Leads" ? <AdsLeadsPanel role={role} userId={userId} />
           : active === "Finance & Payroll" ? <FinancePanel role={role} userId={userId} />
+          : active === "Office Expenses" ? <OfficeExpensePanel role={role} userId={userId} />
           : active === "Accounts" ? <AccountsPanel role={role} />
           : active === "Staff Scoreboard" ? <StaffScoreboard userId={userId} />
           : active === "Academy Management" ? <AcademyPanel role={role} userId={userId} />
