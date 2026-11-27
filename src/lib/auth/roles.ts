@@ -27,6 +27,6 @@ export function visibleModules(role: SdmaRole) {
   const common = ["Overview", "Tasks & Projects", "Attendance", "Daily Reports", "Leave Management", "Announcements"];
   if (role === "staff" || role === "marketer" || role === "designer") return [...common, "Content Calendar"];
   if (role === "team_lead" || role === "office_admin") return [...common, "Clients & CRM", "Content Calendar", "Ads & Leads", "Team & Roles"];
-  if (role === "accounts") return [...common, "Clients & CRM", "Finance & Payroll"];
-  return [...common, "Clients & CRM", "Content Calendar", "Ads & Leads", "Team & Roles", "Finance & Payroll"];
+  if (role === "accounts") return [...common, "Clients & CRM", "Finance & Payroll", "Accounts"];
+  return [...common, "Clients & CRM", "Content Calendar", "Ads & Leads", "Team & Roles", "Finance & Payroll", "Accounts"];
 }
