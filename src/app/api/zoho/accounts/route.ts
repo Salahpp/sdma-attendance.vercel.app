@@ -9,7 +9,7 @@ async function fetchAll(api:string,token:string,path:string,orgId:string,extra:s
 export async function GET(req:NextRequest){const {profile}=await requireProfile();if(!allowed.includes(profile.role))return NextResponse.json({error:"Access denied"},{status:403});
  try{const {token,api}=await getTokens();const orgRes=await fetch(api+"/books/v3/organizations",{headers:{Authorization:"Zoho-oauthtoken "+token},cache:"no-store"});const orgs=await orgRes.json();if(!orgRes.ok||orgs.code!==0)throw Error(orgs.message||"Organization lookup failed");const org=orgs.organizations?.[0];if(!org)throw Error("No Zoho Books organization found");
  const now=new Date(),period=req.nextUrl.searchParams.get("period")||"month",start=period==="year"?now.getFullYear()+"-01-01":new Date(now.getFullYear(),now.getMonth(),1).toISOString().slice(0,10),end=now.toISOString().slice(0,10),report=req.nextUrl.searchParams.get("report")||"profitloss";
- const dateExtra="&date_start="+start+"&date_end="+end";
+ const dateExtra="&date_start="+start+"&date_end="+end;
  const [inv,exp,overdue]=await Promise.all([fetchAll(api,token,"invoices",org.organization_id,dateExtra),fetchAll(api,token,"expenses",org.organization_id,dateExtra),fetchAll(api,token,"invoices",org.organization_id,"&status=overdue")]);
  const revenue=inv.reduce((s:number,x:any)=>s+Number(x.total||0),0),expenseTotal=exp.reduce((s:number,x:any)=>s+Number(x.total||x.amount||0),0),receivables=overdue.reduce((s:number,x:any)=>s+Number(x.balance||0),0);
  const reportData=report==="invoices"?inv:report==="expenses"?exp:report==="receivables"?overdue:{revenue,expenses:expenseTotal,profit:revenue-expenseTotal,receivables,reportName:report,periodStart:start,periodEnd:end,invoiceCount:inv.length,expenseCount:exp.length};
