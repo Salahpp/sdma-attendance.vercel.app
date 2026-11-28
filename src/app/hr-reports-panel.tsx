@@ -5,11 +5,11 @@ import {RefreshCw,Users,Clock3,ClipboardCheck,Star} from "lucide-react";
 type Row=Record<string,any>;
 export default function HrReportsPanel({role,userId}:{role:string;userId:string}){
  const db=useMemo(()=>createClient(),[]);const [staff,setStaff]=useState<Row[]>([]),[sessions,setSessions]=useState<Row[]>([]),[reports,setReports]=useState<Row[]>([]),[tasks,setTasks]=useState<Row[]>([]),[reviews,setReviews]=useState<Row[]>([]),[loading,setLoading]=useState(true),[month,setMonth]=useState(new Date().toISOString().slice(0,7)+"-01"),[error,setError]=useState("");
- const manager=["ceo","operations_manager","team_lead","office_admin"].includes(role);
- const load=useCallback(async()=>{setLoading(true);setError("");const end=new Date(Date.UTC(Number(month.slice(0,4)),Number(month.slice(5,7)),1)).toISOString().slice(0,10);
+ const manager=["ceo","operations_manager"].includes(role);
+ const load=useCallback(async()=>{if(!manager){setError("HR reports are restricted to CEO and Operations Manager.");setLoading(false);return;}setLoading(true);setError("");const end=new Date(Date.UTC(Number(month.slice(0,4)),Number(month.slice(5,7)),1)).toISOString().slice(0,10);
  const [p,a,d,t,r]=await Promise.all([(db as any).from("profiles").select("id,full_name,role,is_active").eq("is_active",true).order("full_name"),(db as any).from("attendance_sessions").select("user_id,attendance_date,check_in,check_out").gte("attendance_date",month).lt("attendance_date",end),(db as any).from("daily_reports").select("user_id,report_type,report_date,completed_tasks,planned_tasks,blockers").gte("report_date",month).lt("report_date",end),(db as any).from("tasks").select("assigned_to,status,due_date").gte("created_at",month).lt("created_at",end),(db as any).from("staff_performance_reviews").select("*").eq("review_month",month)]);
  for(const x of [p,a,d,t,r])if(x.error)setError(x.error.message);setStaff(p.data||[]);setSessions(a.data||[]);setReports(d.data||[]);setTasks(t.data||[]);setReviews(r.data||[]);setLoading(false);
- },[db,month]);useEffect(()=>{void load()},[load]);
+ },[db,month,manager]);useEffect(()=>{void load()},[load]);
  const hours=(id:string)=>sessions.filter(x=>x.user_id===id&&x.check_out).reduce((s,x)=>s+Math.max(0,(new Date(x.check_out).getTime()-new Date(x.check_in).getTime())/3600000),0);
  const staffName=(id:string)=>staff.find(x=>x.id===id)?.full_name||"Team member";
  return <section className="hr-workspace"><div className="tasks-toolbar"><div><h2>HR & Staff Reports</h2><p>Monthly attendance, working hours, daily activity and performance reviews.</p></div><button className="secondary-action" onClick={()=>void load()}><RefreshCw size={15}/> Refresh</button></div>
