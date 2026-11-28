@@ -41,6 +41,7 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
   const canAssign = ["ceo", "operations_manager", "team_lead", "office_admin"].includes(role);
   const canApprove = ["ceo", "team_lead"].includes(role);
   const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [celebration, setCelebration] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true); setError("");
@@ -122,7 +123,7 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
     if (updateError) setError(updateError.message);
     else {
       await supabase.from("task_activity").insert({ task_id: task.id, actor_id: userId, action: "status_changed", details: { from: task.status, to: status } });
-      setSuccess("Task status updated."); await load();
+      setSuccess(status === "completed" ? "Task completed — congratulations!" : "Task status updated.");\n      if (isCompletion) { setCelebration(true); window.setTimeout(() => setCelebration(false), 3200); }\n      await load();
     }
   }
 
@@ -185,7 +186,7 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
   };
   const personName = (id: string | null) => people.find(p => p.id === id)?.full_name || (id === userId ? "You" : "Unassigned");
 
-  return <section className="tasks-workspace">
+  return <section className="tasks-workspace">\n    {celebration && <div className="fixed inset-0 z-[100] pointer-events-none flex items-center justify-center bg-black/10" aria-live="polite"><div className="rounded-2xl bg-white dark:bg-slate-900 shadow-2xl border p-8 text-center animate-bounce"><div className="text-5xl mb-3">🎉✨🎊</div><h2 className="text-2xl font-bold">Task Completed!</h2><p className="mt-2">Great work. Keep the momentum going!</p><div className="text-3xl mt-3">🏆👏🥳</div></div><div className="absolute inset-0 overflow-hidden">{Array.from({length:24},(_,i)=><span key={i} className="absolute text-2xl animate-bounce" style={{left:`${(i*37)%100}%`,top:`${(i*53)%100}%`,animationDelay:`${(i%6)*0.12}s`}}>{["🎉","✨","🎊","⭐","🏆","🥳"][i%6]}</span>)}</div></div>}
     <div className="tasks-toolbar">
       <div><h2>Tasks & Projects</h2><p>Assign work, follow progress and review completion.</p></div>
       <div className="tasks-actions"><button className="secondary-action" onClick={() => void load()}><RefreshCw size={15}/> Refresh</button>{canAssign && <button className="primary-action" onClick={() => { setShowForm(v => !v); setSelectedClientId(""); setSelectedProjectId(""); }}><Plus size={16}/> New task</button>}</div>
