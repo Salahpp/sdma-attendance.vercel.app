@@ -9,7 +9,7 @@ type Task = {
   project_name: string | null; assigned_to: string | null; due_date: string | null;
   priority: "low" | "medium" | "high" | "urgent";
   status: "todo" | "in_progress" | "review" | "completed" | "blocked";
-  category: string | null; created_at: string; project_id: string | null;
+  category: string | null; created_at: string; project_id: string | null; is_daily?: boolean;
 };
 type Person = { id: string; full_name: string; role: string };
 type Client = { id: string; name: string };
@@ -80,6 +80,7 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
       due_date: String(form.get("due_date") || "") || null,
       priority: String(form.get("priority") || "medium") as Task["priority"],
       category: String(form.get("category") || "").trim() || null,
+      is_daily: form.get("is_daily") === "on",
       created_by: userId
     };
     const { data, error: insertError } = await supabase.from("tasks").insert(payload).select("id").single();
@@ -113,12 +114,13 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
     if (canAssign && projectId && (!selectedProject || selectedProject.client_id !== clientId)) {
       setError("Choose a project belonging to the selected client."); setSaving(false); return;
     }
-    const payload: { title: string; description: string | null; priority: Task["priority"]; due_date: string | null; category: string | null; assigned_to?: string | null; client_name?: string | null; project_name?: string | null; project_id?: string | null } = {
+    const payload: { title: string; description: string | null; priority: Task["priority"]; due_date: string | null; category: string | null; is_daily: boolean; assigned_to?: string | null; client_name?: string | null; project_name?: string | null; project_id?: string | null } = {
       title: String(form.get("title") || "").trim(),
       description: String(form.get("description") || "").trim() || null,
       priority: String(form.get("priority") || task.priority) as Task["priority"],
       due_date: String(form.get("due_date") || "") || null,
-      category: String(form.get("category") || "").trim() || null
+      category: String(form.get("category") || "").trim() || null,
+      is_daily: form.get("is_daily") === "on"
     };
     if (canAssign) {
       payload.assigned_to = String(form.get("assigned_to") || "") || null;
@@ -191,7 +193,7 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
         <label>Due date<input name="due_date" type="date"/></label>
         <label>Client<select name="client_id" value={selectedClientId} onChange={e => { setSelectedClientId(e.target.value); setSelectedProjectId(""); }}><option value="">Select client</option>{clients.map(client => <option key={client.id} value={client.id}>{client.name}</option>)}</select></label>
         <label>Project<select name="project_id" disabled={!selectedClientId} value={selectedProjectId} onChange={e => setSelectedProjectId(e.target.value)}><option value="">No linked project</option>{projects.filter(project => selectedClientId && project.client_id === selectedClientId).map(project => <option key={project.id} value={project.id}>{project.name}</option>)}</select></label>
-        <label>Category<input name="category" placeholder="Design, Ads, SEO..."/></label>
+        <label>Category<input name="category" placeholder="Design, Ads, SEO..."/></label><label className="daily-task-toggle"><input type="checkbox" name="is_daily"/> Daily Task – repeat daily</label>
       </div>
       <button className="primary-action" type="submit" disabled={saving}>{saving ? <Loader2 className="spin" size={16}/> : <Plus size={16}/>} {saving ? "Saving..." : "Create task"}</button>
     </form>}
@@ -205,7 +207,7 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
               {editingId===task.id?<form className="task-edit-form" onSubmit={e=>void updateTask(e,task)}>
                 <div className="task-form-heading"><b>Edit task</b><button type="button" onClick={()=>setEditingId(null)}><X size={14}/> Cancel</button></div>
                 <label>Task title<input name="title" required defaultValue={task.title}/></label><label>Description<textarea name="description" rows={3} defaultValue={task.description||""}/></label>
-                <div className="task-form-grid"><label>Priority<select name="priority" defaultValue={task.priority}><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option><option value="urgent">Urgent</option></select></label><label>Due date<input name="due_date" type="date" defaultValue={task.due_date||""}/></label><label>Category<input name="category" defaultValue={task.category||""}/></label>
+                <div className="task-form-grid"><label>Priority<select name="priority" defaultValue={task.priority}><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option><option value="urgent">Urgent</option></select></label><label>Due date<input name="due_date" type="date" defaultValue={task.due_date||""}/></label><label>Category<input name="category" defaultValue={task.category||""}/></label><label className="daily-task-toggle"><input type="checkbox" name="is_daily" defaultChecked={task.is_daily===true}/> Daily Task – repeat daily</label>
                 {canAssign&&<><label>Assign to<select name="assigned_to" defaultValue={task.assigned_to||""}><option value="">Unassigned</option>{people.map(p=><option key={p.id} value={p.id}>{p.full_name||p.role}</option>)}</select></label><label>Client<select name="client_id" defaultValue={clients.find(x=>x.name===task.client_name)?.id||""}><option value="">No client</option>{clients.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label><label>Project<select name="project_id" defaultValue={task.project_id||""}><option value="">No linked project</option>{projects.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label></>}</div>
                 <div className="task-edit-actions"><button className="primary-action" type="submit" disabled={saving}>{saving?<Loader2 className="spin" size={15}/>:<Save size={15}/>} Save task</button><button className="secondary-action" type="button" onClick={()=>setEditingId(null)}>Cancel</button></div>
               </form>:<>
