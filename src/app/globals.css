@@ -418,3 +418,6 @@
  .team-chat-fab{bottom:82px!important;right:9px!important;padding:8px 10px!important;font-size:11px!important}
  .task-history-row{align-items:flex-start;flex-direction:column}
 }
+
+/* Daily task edit toggle */
+.daily-task-toggle{display:flex!important;align-items:center;gap:9px;padding:10px 12px;border:1px solid #e8e8e8;border-radius:10px;font-size:13px;font-weight:600}.daily-task-toggle input{width:17px;height:17px;accent-color:#e31e24}
