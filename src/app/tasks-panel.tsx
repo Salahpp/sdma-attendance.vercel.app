@@ -35,7 +35,7 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [filter, setFilter] = useState("all");
-  const [showHistory, setShowHistory] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);\n  const [editDailyTask, setEditDailyTask] = useState(false);\n  const [editDailyTemplateId, setEditDailyTemplateId] = useState<string | null>(null);
   const canAssign = ["ceo", "operations_manager", "team_lead", "office_admin"].includes(role);
   const canApprove = ["ceo", "team_lead"].includes(role);
   const [draggingId, setDraggingId] = useState<string | null>(null);
@@ -124,7 +124,7 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
     }
   }
 
-  async function updateTask(event: FormEvent<HTMLFormElement>, task: Task) {
+  async function openEditTask(task: Task) { setEditingId(task.id); setEditDailyTask(false); setEditDailyTemplateId(null); if (!canAssign) return; const { data } = await (supabase as any).from("task_templates").select("id,is_active,title,assigned_to").eq("title",task.title).eq("assigned_to",task.assigned_to).order("created_at",{ascending:false}).limit(1); const template=data?.[0]; if(template){setEditDailyTemplateId(template.id);setEditDailyTask(Boolean(template.is_active));} }\n\n  async function updateTask(event: FormEvent<HTMLFormElement>, task: Task) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     setSaving(true); setError(""); setSuccess("");
@@ -134,7 +134,7 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
     if (canAssign && projectId && (!selectedProject || selectedProject.client_id !== clientId)) {
       setError("Choose a project belonging to the selected client."); setSaving(false); return;
     }
-    const payload: { title: string; description: string | null; priority: Task["priority"]; due_date: string | null; category: string | null; assigned_to?: string | null; client_name?: string | null; project_name?: string | null; project_id?: string | null } = {
+    const isDailyTask = form.get("daily_task") === "on";\n    const payload: { title: string; description: string | null; priority: Task["priority"]; due_date: string | null; category: string | null; assigned_to?: string | null; client_name?: string | null; project_name?: string | null; project_id?: string | null } = {
       title: String(form.get("title") || "").trim(),
       description: String(form.get("description") || "").trim() || null,
       priority: String(form.get("priority") || task.priority) as Task["priority"],
@@ -147,12 +147,12 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
       payload.project_name = selectedProject?.name || null;
       payload.project_id = projectId || null;
     }
-    if (!payload.title) { setError("Task title is required."); setSaving(false); return; }
+    if (!payload.title) { setError("Task title is required."); setSaving(false); return; }\n    if (canAssign && isDailyTask && !editDailyTemplateId) { const { data: template, error: templateError } = await (supabase as any).from("task_templates").insert({ title: payload.title, description: payload.description, client_id: clientId || null, assigned_to: payload.assigned_to || null, priority: payload.priority, category: payload.category || "Daily", created_by: userId, frequency: "daily", is_active: true }).select("id").single(); if(templateError){setError(templateError.message);setSaving(false);return;} setEditDailyTemplateId(template?.id||null); } else if(canAssign && editDailyTemplateId) { const {error:templateError}=await (supabase as any).from("task_templates").update({is_active:isDailyTask,title:payload.title,description:payload.description,client_id:clientId||null,assigned_to:payload.assigned_to||null,priority:payload.priority,category:payload.category||"Daily"}).eq("id",editDailyTemplateId); if(templateError){setError(templateError.message);setSaving(false);return;} }
     const { error: updateError } = await supabase.from("tasks").update(payload).eq("id", task.id);
     if (updateError) setError(updateError.message);
     else {
       await supabase.from("task_activity").insert({ task_id: task.id, actor_id: userId, action: "task_edited", details: { title: String(payload.title) } });
-      setSuccess("Task updated successfully."); setEditingId(null); await load();
+      setSuccess("Task updated successfully."); setEditingId(null); setEditDailyTemplateId(null); setEditDailyTask(false); await load();
     }
     setSaving(false);
   }
@@ -222,7 +222,7 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
                 <div className="kanban-card-top"><span className={"priority priority-"+task.priority}>{priorityLabels[task.priority]}</span><span className="kanban-grip">DRAG</span></div>
                 <b className="kanban-task-title">{task.title}</b>{task.description&&<p>{task.description}</p>}
                 <div className="task-meta">{task.due_date && task.due_date < todayKey && task.status !== "completed" && <span className="priority priority-urgent">Overdue</span>}{task.client_name&&<span>{task.client_name}</span>}{task.project_name&&<span>{task.project_name}</span>}<span><UserRound size={13}/> {personName(task.assigned_to)}</span>{task.due_date&&<span><CalendarClock size={13}/> {new Date(task.due_date+"T00:00:00").toLocaleDateString("en-IN")}</span>}</div>
-                <div className="kanban-card-actions">{canEdit&&<button type="button" className="secondary-action" onClick={()=>setEditingId(task.id)}><Pencil size={13}/> Edit</button>}
+                <div className="kanban-card-actions">{canEdit&&<button type="button" className="secondary-action" onClick={()=>void openEditTask(task)}><Pencil size={13}/> Edit</button>}
                 {!canApprove&&task.status!=="review"&&task.status!=="completed"&&<button type="button" className="primary-action" onClick={()=>void moveTask(task,"review")}>Submit for approval</button>}
                 {canApprove&&task.status==="review"&&<button type="button" className="primary-action" onClick={()=>void moveTask(task,"completed")}><CircleCheck size={14}/> Approve</button>}</div>
               </>}
