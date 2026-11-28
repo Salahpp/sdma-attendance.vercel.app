@@ -126,7 +126,9 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
     }
   }
 
-  async function openEditTask(task: Task) { setEditingId(task.id); setEditDailyTask(false); setEditDailyTemplateId(null); if (!canAssign) return; const { data } = await (supabase as any).from("task_templates").select("id,is_active,title,assigned_to").eq("title",task.title).eq("assigned_to",task.assigned_to).order("created_at",{ascending:false}).limit(1); const template=data?.[0]; if(template){setEditDailyTemplateId(template.id);setEditDailyTask(Boolean(template.is_active));} }\n\n  async function updateTask(event: FormEvent<HTMLFormElement>, task: Task) {
+  async function openEditTask(task: Task) { setEditingId(task.id); setEditDailyTask(false); setEditDailyTemplateId(null); if (!canAssign) return; const { data } = await (supabase as any).from("task_templates").select("id,is_active,title,assigned_to").eq("title",task.title).eq("assigned_to",task.assigned_to).order("created_at",{ascending:false}).limit(1); const template=data?.[0]; if(template){setEditDailyTemplateId(template.id);setEditDailyTask(Boolean(template.is_active));} }
+
+  async function updateTask(event: FormEvent<HTMLFormElement>, task: Task) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     setSaving(true); setError(""); setSuccess("");
@@ -136,7 +138,8 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
     if (canAssign && projectId && (!selectedProject || selectedProject.client_id !== clientId)) {
       setError("Choose a project belonging to the selected client."); setSaving(false); return;
     }
-    const isDailyTask = form.get("daily_task") === "on";\n    const payload: { title: string; description: string | null; priority: Task["priority"]; due_date: string | null; category: string | null; assigned_to?: string | null; client_name?: string | null; project_name?: string | null; project_id?: string | null } = {
+    const isDailyTask = form.get("daily_task") === "on";
+    const payload: { title: string; description: string | null; priority: Task["priority"]; due_date: string | null; category: string | null; assigned_to?: string | null; client_name?: string | null; project_name?: string | null; project_id?: string | null } = {
       title: String(form.get("title") || "").trim(),
       description: String(form.get("description") || "").trim() || null,
       priority: String(form.get("priority") || task.priority) as Task["priority"],
@@ -149,7 +152,8 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
       payload.project_name = selectedProject?.name || null;
       payload.project_id = projectId || null;
     }
-    if (!payload.title) { setError("Task title is required."); setSaving(false); return; }\n    if (canAssign && isDailyTask && !editDailyTemplateId) { const { data: template, error: templateError } = await (supabase as any).from("task_templates").insert({ title: payload.title, description: payload.description, client_id: clientId || null, assigned_to: payload.assigned_to || null, priority: payload.priority, category: payload.category || "Daily", created_by: userId, frequency: "daily", is_active: true }).select("id").single(); if(templateError){setError(templateError.message);setSaving(false);return;} setEditDailyTemplateId(template?.id||null); } else if(canAssign && editDailyTemplateId) { const {error:templateError}=await (supabase as any).from("task_templates").update({is_active:isDailyTask,title:payload.title,description:payload.description,client_id:clientId||null,assigned_to:payload.assigned_to||null,priority:payload.priority,category:payload.category||"Daily"}).eq("id",editDailyTemplateId); if(templateError){setError(templateError.message);setSaving(false);return;} }
+    if (!payload.title) { setError("Task title is required."); setSaving(false); return; }
+    if (canAssign && isDailyTask && !editDailyTemplateId) { const { data: template, error: templateError } = await (supabase as any).from("task_templates").insert({ title: payload.title, description: payload.description, client_id: clientId || null, assigned_to: payload.assigned_to || null, priority: payload.priority, category: payload.category || "Daily", created_by: userId, frequency: "daily", is_active: true }).select("id").single(); if(templateError){setError(templateError.message);setSaving(false);return;} setEditDailyTemplateId(template?.id||null); } else if(canAssign && editDailyTemplateId) { const {error:templateError}=await (supabase as any).from("task_templates").update({is_active:isDailyTask,title:payload.title,description:payload.description,client_id:clientId||null,assigned_to:payload.assigned_to||null,priority:payload.priority,category:payload.category||"Daily"}).eq("id",editDailyTemplateId); if(templateError){setError(templateError.message);setSaving(false);return;} }
     const { error: updateError } = await supabase.from("tasks").update(payload).eq("id", task.id);
     if (updateError) setError(updateError.message);
     else {
