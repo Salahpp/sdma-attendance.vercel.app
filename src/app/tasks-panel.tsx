@@ -221,6 +221,6 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
             </article>;
           })}</div>
         </section>;
-      })}</div>) : <div className="task-history-list">{completedHistory.map(task => <article className="task-history-row" key={task.id}><div><b>{task.title}</b><small>{task.client_name || "Internal"} · {personName(task.assigned_to)}</small></div><span>Completed · {((task as Task & {completed_at?:string|null}).completed_at ? new Date((task as Task & {completed_at?:string|null}).completed_at as string) : new Date(task.created_at)).toLocaleDateString("en-IN")}</span></article>)}</div>}
+      })}</div> : <div className="task-history-list">{completedHistory.map(task => <article className="task-history-row" key={task.id}><div><b>{task.title}</b><small>{task.client_name || "Internal"} · {personName(task.assigned_to)}</small></div><span>Completed · {((task as Task & {completed_at?:string|null}).completed_at ? new Date((task as Task & {completed_at?:string|null}).completed_at as string) : new Date(task.created_at)).toLocaleDateString("en-IN")}</span></article>)}</div>}
   </section>;
 }
