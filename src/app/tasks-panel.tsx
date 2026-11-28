@@ -35,7 +35,8 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [filter, setFilter] = useState("all");
-  const [showHistory, setShowHistory] = useState(false);\n  const [editDailyTask, setEditDailyTask] = useState(false);\n  const [editDailyTemplateId, setEditDailyTemplateId] = useState<string | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
+  const [editDailyTask, setEditDailyTask] = useState(false);\n  const [editDailyTemplateId, setEditDailyTemplateId] = useState<string | null>(null);
   const canAssign = ["ceo", "operations_manager", "team_lead", "office_admin"].includes(role);
   const canApprove = ["ceo", "team_lead"].includes(role);
   const [draggingId, setDraggingId] = useState<string | null>(null);
