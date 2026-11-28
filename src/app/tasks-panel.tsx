@@ -196,7 +196,7 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
       <button className="primary-action" type="submit" disabled={saving}>{saving ? <Loader2 className="spin" size={16}/> : <Plus size={16}/>} {saving ? "Saving..." : "Create task"}</button>
     </form>}
     {loading ? <div className="task-empty"><Loader2 className="spin" size={22}/> Loading tasks…</div> : filtered.length === 0 ? <div className="task-empty"><CircleCheck size={28}/><b>No tasks here yet</b><span>Create a task to start tracking agency work.</span></div> :
-      {!historyOpen ? <div className="task-kanban">{columns.filter(column => column.key !== "completed" || recentCompleted.length > 0).map(column => {
+      {!historyOpen ? <div className="task-kanban">{columns.map(column => {
         const columnTasks = filtered.filter(task => task.status === column.key);
         return <section className="kanban-column" key={column.key} onDragOver={event=>event.preventDefault()} onDrop={event=>{event.preventDefault();const task=tasks.find(item=>item.id===draggingId);if(task)void moveTask(task,column.key);}}>
           <header><b>{column.label}</b><span>{columnTasks.length}</span></header><div className="kanban-cards">{columnTasks.map(task => {
