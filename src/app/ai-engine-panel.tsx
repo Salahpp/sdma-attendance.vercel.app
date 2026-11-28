@@ -56,7 +56,7 @@ export default function AiEnginePanel({ userId }: { userId: string }) {
       <div className="ai-hero-content">
         <div className="ai-eyebrow"><span className="ai-live-dot"/> SHAH DIGITAL · INTELLIGENCE WORKSPACE</div>
         <div className="ai-hero-title"><div><h2>Meet your agency copilot.</h2><p>Think faster. Create better. Grow smarter.</p></div><span className="ai-hero-icon"><Sparkles size={28}/></span></div>
-        <div className="ai-hero-bottom"><span><WandSparkles size={14}/> Gemini-powered assistant</span><span><ShieldCheck size={14}/> Private server-side API</span><span className="ai-free-pill">FREE TIER SETUP</span></div>
+        <div className="ai-hero-bottom"><span><WandSparkles size={14}/> Gemini + Llama fallback</span><span><ShieldCheck size={14}/> Private server-side API</span><span className="ai-free-pill">MULTI-PROVIDER</span></div>
       </div>
     </section>
 
