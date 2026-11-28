@@ -9,7 +9,7 @@ type Task = {
   project_name: string | null; assigned_to: string | null; due_date: string | null;
   priority: "low" | "medium" | "high" | "urgent";
   status: "todo" | "in_progress" | "review" | "completed" | "blocked";
-  category: string | null; created_at: string; project_id: string | null;
+  category: string | null; created_at: string; project_id: string | null; completed_at?: string | null;
 };
 type Person = { id: string; full_name: string; role: string };
 type Client = { id: string; name: string };
@@ -34,7 +34,7 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
   const [success, setSuccess] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [filter, setFilter] = useState("all");
+  const [filter, setFilter] = useState("all");\n  const [showHistory, setShowHistory] = useState(false);
   const canAssign = ["ceo", "operations_manager", "team_lead", "office_admin"].includes(role);
   const canApprove = ["ceo", "team_lead"].includes(role);
   const [draggingId, setDraggingId] = useState<string | null>(null);
@@ -157,7 +157,7 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
   }
 
   const todayKey = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date());
-  const filtered = tasks.filter((task) => {
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 2);\n  const historyTasks = tasks.filter(t => t.status === "completed" && t.completed_at && new Date(t.completed_at) < cutoff);\n  const boardTasks = tasks.filter(t => !(t.status === "completed" && t.completed_at && new Date(t.completed_at) < cutoff));\n  const filtered = boardTasks.filter((task) => {
     if (filter === "all") return true;
     if (filter === "mine") return task.assigned_to === userId;
     if (filter === "overdue") return Boolean(task.due_date && task.due_date < todayKey && task.status !== "completed");
@@ -180,7 +180,7 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
       <div><h2>Tasks & Projects</h2><p>Assign work, follow progress and review completion.</p></div>
       <div className="tasks-actions"><button className="secondary-action" onClick={() => void load()}><RefreshCw size={15}/> Refresh</button>{canAssign && <button className="primary-action" onClick={() => { setShowForm(v => !v); setSelectedClientId(""); setSelectedProjectId(""); }}><Plus size={16}/> New task</button>}</div>
     </div>
-    <div className="task-metrics">
+    <button className="secondary-action" onClick={() => setShowHistory(v => !v)}>{showHistory ? "Hide completed history" : "Completed history (older than 2 days)"}</button>\n    {showHistory && <section className="task-history"><h3>Completed task history</h3>{historyTasks.length===0?<p>No older completed tasks in this loaded list.</p>:historyTasks.map(t=><article key={t.id} className="kanban-card"><b>{t.title}</b><p>{t.client_name||""} · {t.completed_at?new Date(t.completed_at).toLocaleDateString("en-IN"):""}</p><span>{personName(t.assigned_to)}</span></article>)}</section>}\n    <div className="task-metrics">
       {(["all","mine","overdue","todo","in_progress","review","completed"] as const).map(key => <button key={key} onClick={() => setFilter(key)} className={filter === key ? "task-filter active" : "task-filter"}><span>{key === "all" ? "All tasks" : key === "mine" ? "Assigned to me" : key === "overdue" ? "Overdue" : statusLabels[key]}</span><b>{counts[key]}</b></button>)}
     </div>
     {error && <p className="task-alert error">{error}</p>}{success && <p className="task-alert success">{success}</p>}
