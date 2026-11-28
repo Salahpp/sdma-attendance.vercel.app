@@ -136,7 +136,24 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
     setSaving(false);
   }
 
-  const filtered = filter === "all" ? tasks : tasks.filter((task) => task.status === filter);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const now = new Date();
+  const twoDaysAgo = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000);
+  const isRecentCompletion = (task: Task) => {
+    const completedAt = (task as Task & { completed_at?: string | null }).completed_at;
+    const finishedAt = completedAt ? new Date(completedAt) : new Date(task.created_at);
+    return !Number.isNaN(finishedAt.getTime()) && finishedAt >= twoDaysAgo;
+  };
+  const recentCompleted = tasks.filter(task => task.status === "completed" && isRecentCompletion(task));
+  const completedHistory = tasks.filter(task => task.status === "completed" && !isRecentCompletion(task));
+  const activeTasks = tasks.filter(task => task.status !== "completed");
+  const filtered = historyOpen
+    ? completedHistory
+    : filter === "all"
+      ? [...activeTasks, ...recentCompleted]
+      : filter === "completed"
+        ? recentCompleted
+        : tasks.filter((task) => task.status === filter);
   const columns: Array<{ key: Task["status"]; label: string }> = [{key:"todo",label:"To do"},{key:"in_progress",label:"In progress"},{key:"review",label:"Awaiting approval"},{key:"completed",label:"Completed"},{key:"blocked",label:"Blocked"}];
   async function moveTask(task: Task, next: Task["status"]) { if (next === "completed" && !canApprove) { setError("Only the CEO or Team Lead can approve task completion."); return; } if (task.status !== next) await changeStatus(task,next); setDraggingId(null); }
   const counts = {
@@ -152,9 +169,17 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
       <div><h2>Tasks & Projects</h2><p>Assign work, follow progress and review completion.</p></div>
       <div className="tasks-actions"><button className="secondary-action" onClick={() => void load()}><RefreshCw size={15}/> Refresh</button>{canAssign && <button className="primary-action" onClick={() => { setShowForm(v => !v); setSelectedClientId(""); setSelectedProjectId(""); }}><Plus size={16}/> New task</button>}</div>
     </div>
-    <div className="task-metrics">
-      {(["all","todo","in_progress","review","completed"] as const).map(key => <button key={key} onClick={() => setFilter(key)} className={filter === key ? "task-filter active" : "task-filter"}><span>{key === "all" ? "All tasks" : statusLabels[key]}</span><b>{counts[key]}</b></button>)}
+    <div className="task-history-toolbar">
+      <button type="button" className={historyOpen ? "secondary-action active" : "secondary-action"} onClick={() => setHistoryOpen(false)}>Active board</button>
+      <button type="button" className={historyOpen ? "primary-action" : "secondary-action"} onClick={() => { setHistoryOpen(true); setFilter("completed"); }}>
+        Completed Tasks History <span className="task-history-count">{completedHistory.length}</span>
+      </button>
+      <span>Recent completed tasks stay visible for 2 days. Older completed tasks are retained in history for monthly analysis.</span>
     </div>
+    {!historyOpen && <div className="task-metrics">
+      {(["all","todo","in_progress","review","completed"] as const).map(key => <button key={key} onClick={() => setFilter(key)} className={filter === key ? "task-filter active" : "task-filter"}><span>{key === "all" ? "All tasks" : statusLabels[key]}</span><b>{counts[key]}</b></button>)}
+    </div>}
+    {historyOpen && <div className="task-history-heading"><b>Completed Tasks History</b><span>All older completed tasks · {completedHistory.length} records</span><button className="secondary-action" onClick={() => {setHistoryOpen(false);setFilter("all");}}>Back to board</button></div>}
     {error && <p className="task-alert error">{error}</p>}{success && <p className="task-alert success">{success}</p>}
     {showForm && canAssign && <form className="task-form" onSubmit={createTask}>
       <div className="task-form-heading"><b>Create a task</b><button type="button" onClick={() => setShowForm(false)}>Close</button></div>
@@ -171,7 +196,7 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
       <button className="primary-action" type="submit" disabled={saving}>{saving ? <Loader2 className="spin" size={16}/> : <Plus size={16}/>} {saving ? "Saving..." : "Create task"}</button>
     </form>}
     {loading ? <div className="task-empty"><Loader2 className="spin" size={22}/> Loading tasks…</div> : filtered.length === 0 ? <div className="task-empty"><CircleCheck size={28}/><b>No tasks here yet</b><span>Create a task to start tracking agency work.</span></div> :
-      <div className="task-kanban">{columns.map(column => {
+      {!historyOpen ? <div className="task-kanban">{columns.filter(column => column.key !== "completed" || recentCompleted.length > 0).map(column => {
         const columnTasks = filtered.filter(task => task.status === column.key);
         return <section className="kanban-column" key={column.key} onDragOver={event=>event.preventDefault()} onDrop={event=>{event.preventDefault();const task=tasks.find(item=>item.id===draggingId);if(task)void moveTask(task,column.key);}}>
           <header><b>{column.label}</b><span>{columnTasks.length}</span></header><div className="kanban-cards">{columnTasks.map(task => {
@@ -194,6 +219,6 @@ export default function TasksPanel({ role, userId }: { role: string; userId: str
             </article>;
           })}</div>
         </section>;
-      })}</div>}
+      })}</div> : <div className="task-history-list">{completedHistory.map(task => <article className="task-history-row" key={task.id}><div><b>{task.title}</b><small>{task.client_name || "Internal"} · {personName(task.assigned_to)}</small></div><span>Completed · {((task as Task & {completed_at?:string|null}).completed_at ? new Date((task as Task & {completed_at?:string|null}).completed_at as string) : new Date(task.created_at)).toLocaleDateString("en-IN")}</span></article>)}</div>}
   </section>;
 }
